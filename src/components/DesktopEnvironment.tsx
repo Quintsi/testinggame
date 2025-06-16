@@ -1,0 +1,123 @@
+import React, { forwardRef } from 'react';
+import { Folder, FileText, Image, Music, Video, Settings, Trash2 } from 'lucide-react';
+import { DamageEffect, Tool } from '../types/game';
+import DamageOverlay from './DamageOverlay';
+
+interface DesktopEnvironmentProps {
+  onClick: (event: React.MouseEvent) => void;
+  damageEffects: DamageEffect[];
+  selectedTool: Tool;
+}
+
+const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
+  ({ onClick, damageEffects, selectedTool }, ref) => {
+    const desktopIcons = [
+      { id: 'documents', icon: Folder, label: 'Documents', x: 50, y: 50 },
+      { id: 'pictures', icon: Image, label: 'Pictures', x: 50, y: 150 },
+      { id: 'music', icon: Music, label: 'Music', x: 50, y: 250 },
+      { id: 'videos', icon: Video, label: 'Videos', x: 50, y: 350 },
+      { id: 'settings', icon: Settings, label: 'Settings', x: 50, y: 450 },
+      { id: 'trash', icon: Trash2, label: 'Recycle Bin', x: 50, y: 550 },
+      { id: 'file1', icon: FileText, label: 'Important.txt', x: 200, y: 100 },
+      { id: 'file2', icon: FileText, label: 'Resume.pdf', x: 200, y: 200 },
+    ];
+
+    const getCursor = () => {
+      switch (selectedTool) {
+        case 'hammer': return 'cursor-crosshair';
+        case 'gun': return 'cursor-crosshair';
+        case 'fire': return 'cursor-crosshair';
+        case 'laser': return 'cursor-crosshair';
+        case 'bomb': return 'cursor-crosshair';
+        default: return 'cursor-default';
+      }
+    };
+
+    return (
+      <div 
+        ref={ref}
+        className={`relative w-full h-screen bg-gradient-to-br from-blue-500 to-purple-600 overflow-hidden ${getCursor()}`}
+        onClick={onClick}
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+        }}
+      >
+        {/* Desktop Icons */}
+        {desktopIcons.map((icon) => {
+          const IconComponent = icon.icon;
+          return (
+            <div
+              key={icon.id}
+              className="absolute flex flex-col items-center space-y-1 p-2 rounded-lg hover:bg-white/20 transition-all duration-200 cursor-pointer select-none"
+              style={{ left: icon.x, top: icon.y }}
+            >
+              <div className="p-3 bg-white/90 rounded-lg shadow-lg">
+                <IconComponent className="w-8 h-8 text-blue-600" />
+              </div>
+              <span className="text-white text-xs font-medium bg-black/50 px-2 py-1 rounded">
+                {icon.label}
+              </span>
+            </div>
+          );
+        })}
+
+        {/* Sample Windows */}
+        <div className="absolute top-20 left-1/4 w-96 h-64 bg-white rounded-lg shadow-2xl border border-gray-300">
+          <div className="bg-blue-600 text-white px-4 py-2 rounded-t-lg flex items-center justify-between">
+            <span className="font-medium">My Computer</span>
+            <div className="flex space-x-2">
+              <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+              <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+            </div>
+          </div>
+          <div className="p-4 h-full bg-white">
+            <div className="grid grid-cols-4 gap-4">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="flex flex-col items-center space-y-1">
+                  <Folder className="w-8 h-8 text-yellow-500" />
+                  <span className="text-xs">Folder {i + 1}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="absolute top-32 right-1/4 w-80 h-48 bg-white rounded-lg shadow-2xl border border-gray-300">
+          <div className="bg-gray-200 text-gray-800 px-4 py-2 rounded-t-lg flex items-center justify-between">
+            <span className="font-medium">Notepad</span>
+            <div className="flex space-x-2">
+              <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+              <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+            </div>
+          </div>
+          <div className="p-4 h-full bg-white">
+            <p className="text-sm text-gray-700">
+              This is a sample text document that you can destroy with various tools!
+            </p>
+          </div>
+        </div>
+
+        {/* Taskbar */}
+        <div className="absolute bottom-0 left-0 right-0 h-12 bg-gray-800/90 backdrop-blur-sm border-t border-gray-600 flex items-center px-4">
+          <div className="bg-blue-600 text-white px-3 py-1 rounded mr-4">
+            <span className="font-bold text-sm">Start</span>
+          </div>
+          <div className="flex space-x-2 flex-1">
+            <div className="bg-gray-700 text-white px-3 py-1 rounded text-sm">My Computer</div>
+            <div className="bg-gray-700 text-white px-3 py-1 rounded text-sm">Notepad</div>
+          </div>
+          <div className="text-white text-sm">
+            {new Date().toLocaleTimeString()}
+          </div>
+        </div>
+
+        {/* Damage Overlay */}
+        <DamageOverlay effects={damageEffects} />
+      </div>
+    );
+  }
+);
+
+DesktopEnvironment.displayName = 'DesktopEnvironment';
+
+export default DesktopEnvironment;
