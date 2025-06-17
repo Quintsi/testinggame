@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useState, useEffect } from 'react';
 import { Folder, FileText, Image, Music, Video, Settings, Trash2 } from 'lucide-react';
 import { DamageEffect, Tool } from '../types/game';
 import DamageOverlay from './DamageOverlay';
@@ -13,6 +13,9 @@ interface DesktopEnvironmentProps {
 
 const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
   ({ onClick, onMouseDown, onMouseUp, damageEffects, selectedTool }, ref) => {
+    const [laserGunFrame, setLaserGunFrame] = useState(0);
+    const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
     const desktopIcons = [
       { id: 'documents', icon: Folder, label: 'Documents', x: 50, y: 50 },
       { id: 'pictures', icon: Image, label: 'Pictures', x: 50, y: 150 },
@@ -24,15 +27,34 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
       { id: 'file2', icon: FileText, label: 'Resume.pdf', x: 200, y: 200 },
     ];
 
-    const getCursor = () => {
-      switch (selectedTool) {
-        case 'hammer': return 'cursor-crosshair';
-        case 'gun': return 'cursor-crosshair';
-        case 'fire': return 'cursor-crosshair';
-        case 'laser': return 'cursor-crosshair';
-        case 'bomb': return 'cursor-crosshair';
-        default: return 'cursor-default';
+    // Animate laser gun frames when laser tool is selected
+    useEffect(() => {
+      if (selectedTool === 'laser') {
+        const interval = setInterval(() => {
+          setLaserGunFrame(prev => (prev + 1) % 9); // 9 different frames
+        }, 150); // Change frame every 150ms
+
+        return () => clearInterval(interval);
       }
+    }, [selectedTool]);
+
+    const handleMouseMove = (event: React.MouseEvent) => {
+      if (selectedTool === 'laser') {
+        const rect = (ref as React.RefObject<HTMLDivElement>).current?.getBoundingClientRect();
+        if (rect) {
+          setMousePosition({
+            x: event.clientX - rect.left,
+            y: event.clientY - rect.top,
+          });
+        }
+      }
+    };
+
+    const getCursor = () => {
+      if (selectedTool === 'laser') {
+        return 'cursor-none'; // Hide default cursor for laser
+      }
+      return 'cursor-crosshair';
     };
 
     return (
@@ -42,10 +64,33 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
         onClick={onClick}
         onMouseDown={onMouseDown}
         onMouseUp={onMouseUp}
+        onMouseMove={handleMouseMove}
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
         }}
       >
+        {/* Custom Laser Gun Cursor */}
+        {selectedTool === 'laser' && (
+          <div
+            className="absolute pointer-events-none z-50"
+            style={{
+              left: mousePosition.x - 25,
+              top: mousePosition.y - 25,
+              transform: 'translate(-50%, -50%)',
+            }}
+          >
+            <img
+              src="/images/lasergun.png"
+              alt="Laser Gun"
+              className="w-12 h-12 animate-pulse"
+              style={{
+                filter: `hue-rotate(${laserGunFrame * 40}deg) brightness(${1 + laserGunFrame * 0.1})`,
+                transform: `rotate(${laserGunFrame * 5}deg) scale(${1 + laserGunFrame * 0.05})`,
+              }}
+            />
+          </div>
+        )}
+
         {/* Desktop Icons */}
         {desktopIcons.map((icon) => {
           const IconComponent = icon.icon;
