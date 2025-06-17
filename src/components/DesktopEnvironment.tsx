@@ -13,7 +13,7 @@ interface DesktopEnvironmentProps {
 
 const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
   ({ onClick, onMouseDown, onMouseUp, damageEffects, selectedTool }, ref) => {
-    const [laserGunFrame, setLaserGunFrame] = useState(0);
+    const [laserGunImage, setLaserGunImage] = useState(1); // 1 or 2
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
     const desktopIcons = [
@@ -27,17 +27,6 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
       { id: 'file2', icon: FileText, label: 'Resume.pdf', x: 200, y: 200 },
     ];
 
-    // Animate laser gun frames when laser tool is selected
-    useEffect(() => {
-      if (selectedTool === 'laser') {
-        const interval = setInterval(() => {
-          setLaserGunFrame(prev => (prev + 1) % 9); // 9 different frames
-        }, 150); // Change frame every 150ms
-
-        return () => clearInterval(interval);
-      }
-    }, [selectedTool]);
-
     const handleMouseMove = (event: React.MouseEvent) => {
       if (selectedTool === 'laser') {
         const rect = (ref as React.RefObject<HTMLDivElement>).current?.getBoundingClientRect();
@@ -47,6 +36,30 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
             y: event.clientY - rect.top,
           });
         }
+      }
+    };
+
+    const handleClick = (event: React.MouseEvent) => {
+      // Switch laser gun image on each click when laser tool is selected
+      if (selectedTool === 'laser') {
+        setLaserGunImage(prev => prev === 1 ? 2 : 1);
+      }
+      
+      // Call the original onClick handler
+      if (onClick) {
+        onClick(event);
+      }
+    };
+
+    const handleMouseDown = (event: React.MouseEvent) => {
+      // Switch laser gun image on mouse down when laser tool is selected
+      if (selectedTool === 'laser') {
+        setLaserGunImage(prev => prev === 1 ? 2 : 1);
+      }
+      
+      // Call the original onMouseDown handler
+      if (onMouseDown) {
+        onMouseDown(event);
       }
     };
 
@@ -61,8 +74,8 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
       <div 
         ref={ref}
         className={`relative w-full h-screen bg-gradient-to-br from-blue-500 to-purple-600 overflow-hidden ${getCursor()}`}
-        onClick={onClick}
-        onMouseDown={onMouseDown}
+        onClick={handleClick}
+        onMouseDown={handleMouseDown}
         onMouseUp={onMouseUp}
         onMouseMove={handleMouseMove}
         style={{
@@ -80,12 +93,11 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
             }}
           >
             <img
-              src="/images/lasergun.png"
+              src={`/images/lg${laserGunImage}-removebg-preview.png`}
               alt="Laser Gun"
-              className="w-12 h-12 animate-pulse"
+              className="w-16 h-16 transition-all duration-150"
               style={{
-                filter: `hue-rotate(${laserGunFrame * 40}deg) brightness(${1 + laserGunFrame * 0.1})`,
-                transform: `rotate(${laserGunFrame * 5}deg) scale(${1 + laserGunFrame * 0.05})`,
+                filter: 'drop-shadow(0 0 8px rgba(0, 191, 255, 0.6))',
               }}
             />
           </div>
