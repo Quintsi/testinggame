@@ -15,6 +15,7 @@ export const useSoundEffects = () => {
   const playingAudio = useMemo(() => new Map<Tool, HTMLAudioElement>(), []);
 
   const startSound = useCallback((tool: Tool) => {
+    newAudio.volume = 0.5;
     const audio = audioFiles[tool];
     
     if (audio) {
@@ -53,6 +54,7 @@ export const useSoundEffects = () => {
 
   // Legacy function for backward compatibility (plays sound once)
   const playSound = useCallback((tool: Tool) => {
+    audio.volume = 0.5
     const audio = audioFiles[tool];
     
     if (audio) {
