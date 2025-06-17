@@ -11,6 +11,47 @@ export const useSoundEffects = () => {
     bomb: new Audio('/soundeffect/bomb.mp3'),
   }), []);
 
+  // Store currently playing audio for each tool
+  const playingAudio = useMemo(() => new Map<Tool, HTMLAudioElement>(), []);
+
+  const startSound = useCallback((tool: Tool) => {
+    const audio = audioFiles[tool];
+    
+    if (audio) {
+      // Stop any currently playing audio for this tool
+      const currentlyPlaying = playingAudio.get(tool);
+      if (currentlyPlaying) {
+        currentlyPlaying.pause();
+        currentlyPlaying.currentTime = 0;
+      }
+
+      // Create a new audio instance for continuous playback
+      const newAudio = new Audio(audio.src);
+      newAudio.volume = 0.5;
+      newAudio.loop = true; // Enable looping for continuous playback
+      
+      // Store the playing audio
+      playingAudio.set(tool, newAudio);
+      
+      // Play the sound
+      newAudio.play().catch(error => {
+        console.warn('Failed to play sound:', error);
+      });
+    }
+  }, [audioFiles, playingAudio]);
+
+  const stopSound = useCallback((tool: Tool) => {
+    const audio = playingAudio.get(tool);
+    
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+      audio.loop = false;
+      playingAudio.delete(tool);
+    }
+  }, [playingAudio]);
+
+  // Legacy function for backward compatibility (plays sound once)
   const playSound = useCallback((tool: Tool) => {
     const audio = audioFiles[tool];
     
@@ -28,5 +69,5 @@ export const useSoundEffects = () => {
     }
   }, [audioFiles]);
 
-  return { playSound };
+  return { startSound, stopSound, playSound };
 };

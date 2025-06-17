@@ -12,7 +12,7 @@ function App() {
   const [particles, setParticles] = useState<any[]>([]);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const desktopRef = useRef<HTMLDivElement>(null);
-  const { playSound } = useSoundEffects();
+  const { startSound, stopSound, playSound } = useSoundEffects();
 
   const tools: { id: Tool; icon: React.ComponentType; name: string; color: string }[] = [
     { id: 'hammer', icon: Hammer, name: 'Hammer', color: 'text-yellow-400' },
@@ -22,6 +22,65 @@ function App() {
     { id: 'bomb', icon: Bomb, name: 'Bomb', color: 'text-purple-400' },
   ];
 
+  const handleDesktopMouseDown = useCallback((event: React.MouseEvent) => {
+    const rect = desktopRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    // Start continuous sound effect
+    if (soundEnabled) {
+      try {
+        startSound(selectedTool);
+      } catch (error) {
+        console.warn('Could not start sound:', error);
+      }
+    }
+
+    // Create damage effect
+    const newDamage: DamageEffect = {
+      id: Date.now() + Math.random(),
+      x,
+      y,
+      tool: selectedTool,
+      timestamp: Date.now(),
+    };
+
+    setDamageEffects(prev => [...prev, newDamage]);
+
+    // Create particles based on tool
+    const particleCount = selectedTool === 'bomb' ? 20 : selectedTool === 'fire' ? 15 : 8;
+    const newParticles = Array.from({ length: particleCount }, (_, i) => ({
+      id: Date.now() + i,
+      x,
+      y,
+      tool: selectedTool,
+      angle: (Math.PI * 2 * i) / particleCount,
+      speed: Math.random() * 5 + 2,
+      life: 1,
+    }));
+
+    setParticles(prev => [...prev, ...newParticles]);
+
+    // Remove particles after animation
+    setTimeout(() => {
+      setParticles(prev => prev.filter(p => !newParticles.includes(p)));
+    }, 2000);
+  }, [selectedTool, soundEnabled, startSound]);
+
+  const handleDesktopMouseUp = useCallback(() => {
+    // Stop the sound effect when mouse is released
+    if (soundEnabled) {
+      try {
+        stopSound(selectedTool);
+      } catch (error) {
+        console.warn('Could not stop sound:', error);
+      }
+    }
+  }, [selectedTool, soundEnabled, stopSound]);
+
+  // Legacy click handler for backward compatibility
   const handleDesktopClick = useCallback((event: React.MouseEvent) => {
     const rect = desktopRef.current?.getBoundingClientRect();
     if (!rect) return;
@@ -29,7 +88,7 @@ function App() {
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    // Play sound effect
+    // Play sound effect (single play)
     if (soundEnabled) {
       try {
         playSound(selectedTool);
@@ -88,6 +147,25 @@ function App() {
     return () => clearInterval(cleanup);
   }, []);
 
+  // Global mouse up handler to stop sounds when mouse is released outside desktop
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      if (soundEnabled) {
+        try {
+          stopSound(selectedTool);
+        } catch (error) {
+          console.warn('Could not stop sound:', error);
+        }
+      }
+    };
+
+    document.addEventListener('mouseup', handleGlobalMouseUp);
+    
+    return () => {
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, [selectedTool, soundEnabled, stopSound]);
+
   return (
     <div className="h-screen w-screen bg-gray-900 overflow-hidden relative">
       {/* Tool Sidebar */}
@@ -105,6 +183,8 @@ function App() {
         <DesktopEnvironment
           ref={desktopRef}
           onClick={handleDesktopClick}
+          onMouseDown={handleDesktopMouseDown}
+          onMouseUp={handleDesktopMouseUp}
           damageEffects={damageEffects}
           selectedTool={selectedTool}
         />

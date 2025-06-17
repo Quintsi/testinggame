@@ -4,13 +4,15 @@ import { DamageEffect, Tool } from '../types/game';
 import DamageOverlay from './DamageOverlay';
 
 interface DesktopEnvironmentProps {
-  onClick: (event: React.MouseEvent) => void;
+  onClick?: (event: React.MouseEvent) => void;
+  onMouseDown?: (event: React.MouseEvent) => void;
+  onMouseUp?: (event: React.MouseEvent) => void;
   damageEffects: DamageEffect[];
   selectedTool: Tool;
 }
 
 const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
-  ({ onClick, damageEffects, selectedTool }, ref) => {
+  ({ onClick, onMouseDown, onMouseUp, damageEffects, selectedTool }, ref) => {
     const desktopIcons = [
       { id: 'documents', icon: Folder, label: 'Documents', x: 50, y: 50 },
       { id: 'pictures', icon: Image, label: 'Pictures', x: 50, y: 150 },
@@ -38,6 +40,8 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
         ref={ref}
         className={`relative w-full h-screen bg-gradient-to-br from-blue-500 to-purple-600 overflow-hidden ${getCursor()}`}
         onClick={onClick}
+        onMouseDown={onMouseDown}
+        onMouseUp={onMouseUp}
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
         }}
