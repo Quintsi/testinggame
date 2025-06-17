@@ -4,7 +4,7 @@ import { Tool } from '../types/game';
 export const useSoundEffects = () => {
   // Pre-load audio files for better performance
   const audioFiles = useMemo(() => ({
-    hammer: new Audio('/soundeffect/hammer.mp3'),
+    hammer: new Audio('/soundeffect/hammer.wav'),
     gun: new Audio('/soundeffect/gun.mp3'),
     fire: new Audio('/soundeffect/firegun.wav'),
     laser: new Audio('/soundeffect/laser.mp3'),
