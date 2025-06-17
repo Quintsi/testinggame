@@ -2,6 +2,7 @@ import React from 'react';
 import { RotateCcw } from 'lucide-react';
 import { Tool } from '../types/game';
 import SoundToggle from './SoundToggle';
+import VolumeSlider from './VolumeSlider';
 
 interface ToolSidebarProps {
   tools: { id: Tool; icon: React.ComponentType; name: string; color: string }[];
@@ -10,6 +11,8 @@ interface ToolSidebarProps {
   onReset: () => void;
   soundEnabled: boolean;
   onSoundToggle: () => void;
+  volume: number;
+  onVolumeChange: (volume: number) => void;
 }
 
 const ToolSidebar: React.FC<ToolSidebarProps> = ({
@@ -19,6 +22,8 @@ const ToolSidebar: React.FC<ToolSidebarProps> = ({
   onReset,
   soundEnabled,
   onSoundToggle,
+  volume,
+  onVolumeChange,
 }) => {
   return (
     <div className="absolute left-4 top-1/2 transform -translate-y-1/2 z-50">
@@ -58,6 +63,7 @@ const ToolSidebar: React.FC<ToolSidebarProps> = ({
 
         <div className="border-t border-gray-600 pt-3 space-y-3">
           <SoundToggle soundEnabled={soundEnabled} onToggle={onSoundToggle} />
+          <VolumeSlider volume={volume} onVolumeChange={onVolumeChange} />
           
           <button
             onClick={onReset}

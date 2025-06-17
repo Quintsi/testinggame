@@ -11,8 +11,9 @@ function App() {
   const [damageEffects, setDamageEffects] = useState<DamageEffect[]>([]);
   const [particles, setParticles] = useState<any[]>([]);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [volume, setVolume] = useState(50);
   const desktopRef = useRef<HTMLDivElement>(null);
-  const { startSound, stopSound, playSound } = useSoundEffects();
+  const { startSound, stopSound, playSound } = useSoundEffects(volume / 100);
 
   const tools: { id: Tool; icon: React.ComponentType; name: string; color: string }[] = [
     { id: 'hammer', icon: Hammer, name: 'Hammer', color: 'text-yellow-400' },
@@ -176,6 +177,8 @@ function App() {
         onReset={resetDesktop}
         soundEnabled={soundEnabled}
         onSoundToggle={toggleSound}
+        volume={volume}
+        onVolumeChange={setVolume}
       />
 
       {/* Desktop Environment */}

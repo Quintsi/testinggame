@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { Tool } from '../types/game';
 
-export const useSoundEffects = () => {
+export const useSoundEffects = (volume: number = 0.5) => {
   // Pre-load audio files for better performance
   const audioFiles = useMemo(() => ({
     hammer: new Audio('/soundeffect/hammer.wav'),
@@ -15,7 +15,6 @@ export const useSoundEffects = () => {
   const playingAudio = useMemo(() => new Map<Tool, HTMLAudioElement>(), []);
 
   const startSound = useCallback((tool: Tool) => {
-    newAudio.volume = 0.5;
     const audio = audioFiles[tool];
     
     if (audio) {
@@ -28,7 +27,7 @@ export const useSoundEffects = () => {
 
       // Create a new audio instance for continuous playback
       const newAudio = new Audio(audio.src);
-      newAudio.volume = 0.5;
+      newAudio.volume = volume;
       newAudio.loop = true; // Enable looping for continuous playback
       
       // Store the playing audio
@@ -39,7 +38,7 @@ export const useSoundEffects = () => {
         console.warn('Failed to play sound:', error);
       });
     }
-  }, [audioFiles, playingAudio]);
+  }, [audioFiles, playingAudio, volume]);
 
   const stopSound = useCallback((tool: Tool) => {
     const audio = playingAudio.get(tool);
@@ -54,22 +53,21 @@ export const useSoundEffects = () => {
 
   // Legacy function for backward compatibility (plays sound once)
   const playSound = useCallback((tool: Tool) => {
-    audio.volume = 0.5
     const audio = audioFiles[tool];
     
     if (audio) {
       // Reset audio to beginning if it's already playing
       audio.currentTime = 0;
       
-      // Set volume to a reasonable level
-      audio.volume = 0.5;
+      // Set volume
+      audio.volume = volume;
       
       // Play the sound
       audio.play().catch(error => {
         console.warn('Failed to play sound:', error);
       });
     }
-  }, [audioFiles]);
+  }, [audioFiles, volume]);
 
   return { startSound, stopSound, playSound };
 };
