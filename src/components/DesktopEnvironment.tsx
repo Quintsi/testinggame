@@ -15,6 +15,7 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
   ({ onClick, onMouseDown, onMouseUp, damageEffects, selectedTool }, ref) => {
     const [laserGunImage, setLaserGunImage] = useState(1); // 1 or 2
     const [gunImage, setGunImage] = useState(1); // 1 or 2
+    const [hammerImage, setHammerImage] = useState(1); // 1 or 2
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
     const desktopIcons = [
@@ -29,7 +30,7 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
     ];
 
     const handleMouseMove = (event: React.MouseEvent) => {
-      if (selectedTool === 'laser' || selectedTool === 'gun') {
+      if (selectedTool === 'laser' || selectedTool === 'gun' || selectedTool === 'hammer') {
         const rect = (ref as React.RefObject<HTMLDivElement>).current?.getBoundingClientRect();
         if (rect) {
           setMousePosition({
@@ -51,6 +52,11 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
         setGunImage(prev => prev === 1 ? 2 : 1);
       }
       
+      // Switch hammer image on each click when hammer tool is selected
+      if (selectedTool === 'hammer') {
+        setHammerImage(prev => prev === 1 ? 2 : 1);
+      }
+      
       // Call the original onClick handler
       if (onClick) {
         onClick(event);
@@ -68,6 +74,11 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
         setGunImage(prev => prev === 1 ? 2 : 1);
       }
       
+      // Switch hammer image on mouse down when hammer tool is selected
+      if (selectedTool === 'hammer') {
+        setHammerImage(prev => prev === 1 ? 2 : 1);
+      }
+      
       // Call the original onMouseDown handler
       if (onMouseDown) {
         onMouseDown(event);
@@ -75,8 +86,8 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
     };
 
     const getCursor = () => {
-      if (selectedTool === 'laser' || selectedTool === 'gun') {
-        return 'cursor-none'; // Hide default cursor for laser and gun
+      if (selectedTool === 'laser' || selectedTool === 'gun' || selectedTool === 'hammer') {
+        return 'cursor-none'; // Hide default cursor for weapons
       }
       return 'cursor-crosshair';
     };
@@ -88,6 +99,9 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
       if (selectedTool === 'gun') {
         return `/images/g${gunImage}.png`;
       }
+      if (selectedTool === 'hammer') {
+        return `/images/h${hammerImage}.png`;
+      }
       return '';
     };
 
@@ -97,6 +111,22 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
       }
       if (selectedTool === 'gun') {
         return 'Gun';
+      }
+      if (selectedTool === 'hammer') {
+        return 'Hammer';
+      }
+      return '';
+    };
+
+    const getWeaponGlow = () => {
+      if (selectedTool === 'laser') {
+        return 'drop-shadow(0 0 8px rgba(0, 191, 255, 0.6))';
+      }
+      if (selectedTool === 'gun') {
+        return 'drop-shadow(0 0 8px rgba(255, 215, 0, 0.6))';
+      }
+      if (selectedTool === 'hammer') {
+        return 'drop-shadow(0 0 8px rgba(139, 69, 19, 0.6))';
       }
       return '';
     };
@@ -114,7 +144,7 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
         }}
       >
         {/* Custom Weapon Cursor */}
-        {(selectedTool === 'laser' || selectedTool === 'gun') && (
+        {(selectedTool === 'laser' || selectedTool === 'gun' || selectedTool === 'hammer') && (
           <div
             className="absolute pointer-events-none z-50"
             style={{
@@ -128,9 +158,7 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
               alt={getWeaponAltText()}
               className="w-16 h-16 transition-all duration-150"
               style={{
-                filter: selectedTool === 'laser' 
-                  ? 'drop-shadow(0 0 8px rgba(0, 191, 255, 0.6))'
-                  : 'drop-shadow(0 0 8px rgba(255, 215, 0, 0.6))',
+                filter: getWeaponGlow(),
               }}
             />
           </div>
