@@ -27,7 +27,7 @@ export const useSoundEffects = (volume: number = 0.5) => {
 
       // Create a new audio instance for continuous playback
       const newAudio = new Audio(audio.src);
-      newAudio.volume = volume;
+      newAudio.volume = 0.5;
       newAudio.loop = true; // Enable looping for continuous playback
       
       // Store the playing audio
@@ -38,7 +38,7 @@ export const useSoundEffects = (volume: number = 0.5) => {
         console.warn('Failed to play sound:', error);
       });
     }
-  }, [audioFiles, playingAudio, volume]);
+  }, [audioFiles, playingAudio]);
 
   const stopSound = useCallback((tool: Tool) => {
     const audio = playingAudio.get(tool);
@@ -59,15 +59,15 @@ export const useSoundEffects = (volume: number = 0.5) => {
       // Reset audio to beginning if it's already playing
       audio.currentTime = 0;
       
-      // Set volume
-      audio.volume = volume;
+      // Set volume to a reasonable level
+      audio.volume = 0.5;
       
       // Play the sound
       audio.play().catch(error => {
         console.warn('Failed to play sound:', error);
       });
     }
-  }, [audioFiles, volume]);
+  }, [audioFiles]);
 
   return { startSound, stopSound, playSound };
 };
