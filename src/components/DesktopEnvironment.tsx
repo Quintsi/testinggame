@@ -14,6 +14,7 @@ interface DesktopEnvironmentProps {
 const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
   ({ onClick, onMouseDown, onMouseUp, damageEffects, selectedTool }, ref) => {
     const [laserGunImage, setLaserGunImage] = useState(1); // 1 or 2
+    const [gunImage, setGunImage] = useState(1); // 1 or 2
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
     const desktopIcons = [
@@ -28,7 +29,7 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
     ];
 
     const handleMouseMove = (event: React.MouseEvent) => {
-      if (selectedTool === 'laser') {
+      if (selectedTool === 'laser' || selectedTool === 'gun') {
         const rect = (ref as React.RefObject<HTMLDivElement>).current?.getBoundingClientRect();
         if (rect) {
           setMousePosition({
@@ -45,6 +46,11 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
         setLaserGunImage(prev => prev === 1 ? 2 : 1);
       }
       
+      // Switch gun image on each click when gun tool is selected
+      if (selectedTool === 'gun') {
+        setGunImage(prev => prev === 1 ? 2 : 1);
+      }
+      
       // Call the original onClick handler
       if (onClick) {
         onClick(event);
@@ -57,6 +63,11 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
         setLaserGunImage(prev => prev === 1 ? 2 : 1);
       }
       
+      // Switch gun image on mouse down when gun tool is selected
+      if (selectedTool === 'gun') {
+        setGunImage(prev => prev === 1 ? 2 : 1);
+      }
+      
       // Call the original onMouseDown handler
       if (onMouseDown) {
         onMouseDown(event);
@@ -64,10 +75,30 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
     };
 
     const getCursor = () => {
-      if (selectedTool === 'laser') {
-        return 'cursor-none'; // Hide default cursor for laser
+      if (selectedTool === 'laser' || selectedTool === 'gun') {
+        return 'cursor-none'; // Hide default cursor for laser and gun
       }
       return 'cursor-crosshair';
+    };
+
+    const getCurrentWeaponImage = () => {
+      if (selectedTool === 'laser') {
+        return `/images/fg${laserGunImage}.png`;
+      }
+      if (selectedTool === 'gun') {
+        return `/images/g${gunImage}.png`;
+      }
+      return '';
+    };
+
+    const getWeaponAltText = () => {
+      if (selectedTool === 'laser') {
+        return 'Laser Gun';
+      }
+      if (selectedTool === 'gun') {
+        return 'Gun';
+      }
+      return '';
     };
 
     return (
@@ -82,8 +113,8 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
         }}
       >
-        {/* Custom Laser Gun Cursor */}
-        {selectedTool === 'laser' && (
+        {/* Custom Weapon Cursor */}
+        {(selectedTool === 'laser' || selectedTool === 'gun') && (
           <div
             className="absolute pointer-events-none z-50"
             style={{
@@ -93,11 +124,13 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
             }}
           >
             <img
-              src={`/images/fg${laserGunImage}.png`}
-              alt="Laser Gun"
+              src={getCurrentWeaponImage()}
+              alt={getWeaponAltText()}
               className="w-16 h-16 transition-all duration-150"
               style={{
-                filter: 'drop-shadow(0 0 8px rgba(0, 191, 255, 0.6))',
+                filter: selectedTool === 'laser' 
+                  ? 'drop-shadow(0 0 8px rgba(0, 191, 255, 0.6))'
+                  : 'drop-shadow(0 0 8px rgba(255, 215, 0, 0.6))',
               }}
             />
           </div>
