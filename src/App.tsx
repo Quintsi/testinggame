@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Hammer, Zap, Flame, Bomb, RotateCcw, Target } from 'lucide-react';
+import { Hammer, Zap, Flame, Bomb, RotateCcw, Target, Fan } from 'lucide-react';
 import DesktopEnvironment from './components/DesktopEnvironment';
 import ToolSidebar from './components/ToolSidebar';
 import ParticleSystem from './components/ParticleSystem';
@@ -18,9 +18,10 @@ function App() {
   const tools: { id: Tool; icon: React.ComponentType; name: string; color: string }[] = [
     { id: 'hammer', icon: Hammer, name: 'Hammer', color: 'text-yellow-400' },
     { id: 'gun', icon: Target, name: 'Gun', color: 'text-red-400' },
-    { id: 'fire', icon: Flame, name: 'Fire', color: 'text-orange-400' },
+    { id: 'flamethrower', icon: Flame, name: 'flamethrower', color: 'text-orange-400' },
     { id: 'laser', icon: Zap, name: 'Laser', color: 'text-blue-400' },
     { id: 'bomb', icon: Bomb, name: 'Bomb', color: 'text-purple-400' },
+    { id: 'chainsaw', icon: Fan, name: 'Chainsaw', color: 'text-green-400' },
   ];
 
   const handleDesktopMouseDown = useCallback((event: React.MouseEvent) => {
@@ -51,7 +52,7 @@ function App() {
     setDamageEffects(prev => [...prev, newDamage]);
 
     // Create particles based on tool
-    const particleCount = selectedTool === 'bomb' ? 20 : selectedTool === 'fire' ? 15 : 8;
+    const particleCount = selectedTool === 'bomb' ? 20 : selectedTool === 'flamethrower' ? 15 : 8;
     const newParticles = Array.from({ length: particleCount }, (_, i) => ({
       id: Date.now() + i,
       x,
@@ -110,7 +111,7 @@ function App() {
     setDamageEffects(prev => [...prev, newDamage]);
 
     // Create particles based on tool
-    const particleCount = selectedTool === 'bomb' ? 20 : selectedTool === 'fire' ? 15 : 8;
+    const particleCount = selectedTool === 'bomb' ? 20 : selectedTool === 'flamethrower' ? 15 : 8;
     const newParticles = Array.from({ length: particleCount }, (_, i) => ({
       id: Date.now() + i,
       x,

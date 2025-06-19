@@ -35,7 +35,7 @@ const DamageOverlay: React.FC<DamageOverlayProps> = ({ effects }) => {
           border: '2px solid rgba(139,69,19,0.6)',
         };
       
-      case 'fire':
+      case 'flamethrower':
         return {
           ...baseStyle,
           width: 80,

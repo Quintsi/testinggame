@@ -38,6 +38,7 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({ particles }) => {
     return () => clearInterval(animationInterval);
   }, [particles]);
 
+  // damage effect
   const getParticleStyle = (particle: Particle & { offsetX: number; offsetY: number }) => {
     const baseStyle = {
       position: 'absolute' as const,
@@ -68,7 +69,7 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({ particles }) => {
           boxShadow: '0 0 6px #FFD700',
         };
       
-      case 'fire':
+      case 'flamethrower':
         return {
           ...baseStyle,
           width: 8,
@@ -95,6 +96,12 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({ particles }) => {
           background: `radial-gradient(circle, #FF4500 0%, #FF8C00 50%, #FFD700 100%)`,
           borderRadius: '50%',
         };
+
+      case 'chainsaw':
+        return {
+          ...baseStyle,
+          // FIXME: 
+        }
       
       default:
         return baseStyle;

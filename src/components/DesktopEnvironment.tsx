@@ -16,6 +16,8 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
     const [laserGunImage, setLaserGunImage] = useState(1); // 1 or 2
     const [gunImage, setGunImage] = useState(1); // 1 or 2
     const [hammerImage, setHammerImage] = useState(1); // 1 or 2
+    const [flamethrowerImage, setFlamethrowerImage] = useState(1);
+    const [chainsawImage, setChainsawImage] = useState(1);
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
     const desktopIcons = [
@@ -30,7 +32,7 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
     ];
 
     const handleMouseMove = (event: React.MouseEvent) => {
-      if (selectedTool === 'laser' || selectedTool === 'gun' || selectedTool === 'hammer') {
+      if (selectedTool === 'laser' || selectedTool === 'gun' || selectedTool === 'hammer' || selectedTool === 'flamethrower' || selectedTool === 'chainsaw') {
         const rect = (ref as React.RefObject<HTMLDivElement>).current?.getBoundingClientRect();
         if (rect) {
           setMousePosition({
@@ -56,6 +58,16 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
       if (selectedTool === 'hammer') {
         setHammerImage(prev => prev === 1 ? 2 : 1);
       }
+
+      // Switch flamethrower image on each click when flamethrower tool is selected
+      if (selectedTool === 'flamethrower') {
+        setFlamethrowerImage(prev => prev === 1 ? 2 : 1);
+      }
+
+      // Switch chainsaw image on each click when chainsaw tool is selected
+      if (selectedTool === 'chainsaw') {
+        setChainsawImage(prev => prev === 1 ? 2 : 1);
+      }
       
       // Call the original onClick handler
       if (onClick) {
@@ -78,6 +90,16 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
       if (selectedTool === 'hammer') {
         setHammerImage(prev => prev === 1 ? 2 : 1);
       }
+
+      // Switch flamethrower image on mouse down when flamethrower tool is selected
+      if (selectedTool === 'flamethrower') {
+        setFlamethrowerImage(prev => prev === 1 ? 2 : 1);
+      }
+
+      // Switch chainsaw image on mouse down when chainsaw tool is selected
+      if (selectedTool === 'chainsaw') {
+        setChainsawImage(prev => prev === 1 ? 2 : 1);
+      }
       
       // Call the original onMouseDown handler
       if (onMouseDown) {
@@ -86,7 +108,7 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
     };
 
     const getCursor = () => {
-      if (selectedTool === 'laser' || selectedTool === 'gun' || selectedTool === 'hammer') {
+      if (selectedTool === 'laser' || selectedTool === 'gun' || selectedTool === 'hammer' || selectedTool === 'flamethrower' || selectedTool === 'chainsaw') {
         return 'cursor-none'; // Hide default cursor for weapons
       }
       return 'cursor-crosshair';
@@ -102,6 +124,12 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
       if (selectedTool === 'hammer') {
         return `/images/h${hammerImage}.png`;
       }
+      if (selectedTool === 'flamethrower') {
+        return `/images/ft${flamethrowerImage}.png`;
+      }
+      if (selectedTool === 'chainsaw') {
+        return `/images/cs${chainsawImage}.png`; 
+      }
       return '';
     };
 
@@ -115,6 +143,12 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
       if (selectedTool === 'hammer') {
         return 'Hammer';
       }
+      if (selectedTool === 'flamethrower') {
+        return 'Flamethrower';
+      }
+      if (selectedTool === 'chainsaw') {
+        return 'Chainsaw';
+      }
       return '';
     };
 
@@ -126,6 +160,12 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
         return 'drop-shadow(0 0 8px rgba(255, 215, 0, 0.6))';
       }
       if (selectedTool === 'hammer') {
+        return 'drop-shadow(0 0 8px rgba(139, 69, 19, 0.6))';
+      }
+      if (selectedTool === 'flamethrower') {
+        return 'drop-shadow(0 0 8px rgba(139, 69, 19, 0.6))';
+      }
+      if (selectedTool === 'chainsaw') {
         return 'drop-shadow(0 0 8px rgba(139, 69, 19, 0.6))';
       }
       return '';
@@ -144,7 +184,7 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
         }}
       >
         {/* Custom Weapon Cursor */}
-        {(selectedTool === 'laser' || selectedTool === 'gun' || selectedTool === 'hammer') && (
+        {(selectedTool === 'laser' || selectedTool === 'gun' || selectedTool === 'hammer' || selectedTool === 'flamethrower' || selectedTool === 'chainsaw') && (
           <div
             className="absolute pointer-events-none z-50"
             style={{

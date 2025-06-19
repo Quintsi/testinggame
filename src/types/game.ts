@@ -1,4 +1,4 @@
-export type Tool = 'hammer' | 'gun' | 'fire' | 'laser' | 'bomb';
+export type Tool = 'hammer' | 'gun' | 'flamethrower' | 'laser' | 'bomb' | 'chainsaw';
 
 export interface DamageEffect {
   id: number;
