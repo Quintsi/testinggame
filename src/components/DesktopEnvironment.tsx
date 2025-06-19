@@ -93,7 +93,7 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
             }}
           >
             <img
-              src={`/images/lg${laserGunImage}-removebg-preview.png`}
+              src={`/images/fg${laserGunImage}.png`}
               alt="Laser Gun"
               className="w-16 h-16 transition-all duration-150"
               style={{
