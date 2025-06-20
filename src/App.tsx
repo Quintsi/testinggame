@@ -31,6 +31,7 @@ function App() {
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
+    // random comment
     // Start continuous sound effect
     if (soundEnabled) {
       try {
