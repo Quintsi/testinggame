@@ -1,5 +1,7 @@
 export type Tool = 'hammer' | 'gun' | 'flamethrower' | 'laser' | 'bomb' | 'chainsaw';
 
+export type GameMode = 'desktop-destroyer' | 'pest-control';
+
 export interface DamageEffect {
   id: number;
   x: number;
@@ -26,4 +28,11 @@ export interface DesktopWindow {
   width: number;
   height: number;
   minimized: boolean;
+}
+
+export interface Bug {
+  id: number;
+  x: number;
+  y: number;
+  timestamp: number;
 }

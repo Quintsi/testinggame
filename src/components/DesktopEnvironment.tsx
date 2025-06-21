@@ -1,6 +1,6 @@
 import React, { forwardRef, useState, useEffect } from 'react';
 import { Folder, FileText, Image, Music, Video, Settings, Trash2 } from 'lucide-react';
-import { DamageEffect, Tool } from '../types/game';
+import { DamageEffect, Tool, GameMode } from '../types/game';
 import DamageOverlay from './DamageOverlay';
 
 interface DesktopEnvironmentProps {
@@ -9,10 +9,11 @@ interface DesktopEnvironmentProps {
   onMouseUp?: (event: React.MouseEvent) => void;
   damageEffects: DamageEffect[];
   selectedTool: Tool;
+  gameMode: GameMode;
 }
 
 const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
-  ({ onClick, onMouseDown, onMouseUp, damageEffects, selectedTool }, ref) => {
+  ({ onClick, onMouseDown, onMouseUp, damageEffects, selectedTool, gameMode }, ref) => {
     const [laserGunImage, setLaserGunImage] = useState(1); // 1 or 2
     const [gunImage, setGunImage] = useState(1); // 1 or 2
     const [hammerImage, setHammerImage] = useState(1); // 1 or 2
@@ -204,8 +205,8 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
           </div>
         )}
 
-        {/* Desktop Icons */}
-        {desktopIcons.map((icon) => {
+        {/* Desktop Icons - Only show in desktop destroyer mode */}
+        {gameMode === 'desktop-destroyer' && desktopIcons.map((icon) => {
           const IconComponent = icon.icon;
           return (
             <div
@@ -223,41 +224,45 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
           );
         })}
 
-        {/* Sample Windows */}
-        <div className="absolute top-20 left-1/4 w-96 h-64 bg-white rounded-lg shadow-2xl border border-gray-300">
-          <div className="bg-blue-600 text-white px-4 py-2 rounded-t-lg flex items-center justify-between">
-            <span className="font-medium">My Computer</span>
-            <div className="flex space-x-2">
-              <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-              <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-            </div>
-          </div>
-          <div className="p-4 h-full bg-white">
-            <div className="grid grid-cols-4 gap-4">
-              {[...Array(8)].map((_, i) => (
-                <div key={i} className="flex flex-col items-center space-y-1">
-                  <Folder className="w-8 h-8 text-yellow-500" />
-                  <span className="text-xs">Folder {i + 1}</span>
+        {/* Sample Windows - Only show in desktop destroyer mode */}
+        {gameMode === 'desktop-destroyer' && (
+          <>
+            <div className="absolute top-20 left-1/4 w-96 h-64 bg-white rounded-lg shadow-2xl border border-gray-300">
+              <div className="bg-blue-600 text-white px-4 py-2 rounded-t-lg flex items-center justify-between">
+                <span className="font-medium">My Computer</span>
+                <div className="flex space-x-2">
+                  <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                  <div className="w-3 h-3 bg-red-400 rounded-full"></div>
                 </div>
-              ))}
+              </div>
+              <div className="p-4 h-full bg-white">
+                <div className="grid grid-cols-4 gap-4">
+                  {[...Array(8)].map((_, i) => (
+                    <div key={i} className="flex flex-col items-center space-y-1">
+                      <Folder className="w-8 h-8 text-yellow-500" />
+                      <span className="text-xs">Folder {i + 1}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <div className="absolute top-32 right-1/4 w-80 h-48 bg-white rounded-lg shadow-2xl border border-gray-300">
-          <div className="bg-gray-200 text-gray-800 px-4 py-2 rounded-t-lg flex items-center justify-between">
-            <span className="font-medium">Notepad</span>
-            <div className="flex space-x-2">
-              <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-              <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+            <div className="absolute top-32 right-1/4 w-80 h-48 bg-white rounded-lg shadow-2xl border border-gray-300">
+              <div className="bg-gray-200 text-gray-800 px-4 py-2 rounded-t-lg flex items-center justify-between">
+                <span className="font-medium">Notepad</span>
+                <div className="flex space-x-2">
+                  <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                  <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                </div>
+              </div>
+              <div className="p-4 h-full bg-white">
+                <p className="text-sm text-gray-700">
+                  This is a sample text document that you can destroy with various tools!
+                </p>
+              </div>
             </div>
-          </div>
-          <div className="p-4 h-full bg-white">
-            <p className="text-sm text-gray-700">
-              This is a sample text document that you can destroy with various tools!
-            </p>
-          </div>
-        </div>
+          </>
+        )}
 
         {/* Taskbar */}
         <div className="absolute bottom-0 left-0 right-0 h-12 bg-gray-800/90 backdrop-blur-sm border-t border-gray-600 flex items-center px-4">
@@ -265,16 +270,23 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
             <span className="font-bold text-sm">Start</span>
           </div>
           <div className="flex space-x-2 flex-1">
-            <div className="bg-gray-700 text-white px-3 py-1 rounded text-sm">My Computer</div>
-            <div className="bg-gray-700 text-white px-3 py-1 rounded text-sm">Notepad</div>
+            {gameMode === 'desktop-destroyer' && (
+              <>
+                <div className="bg-gray-700 text-white px-3 py-1 rounded text-sm">My Computer</div>
+                <div className="bg-gray-700 text-white px-3 py-1 rounded text-sm">Notepad</div>
+              </>
+            )}
+            {gameMode === 'pest-control' && (
+              <div className="bg-gray-700 text-white px-3 py-1 rounded text-sm">Pest Control</div>
+            )}
           </div>
           <div className="text-white text-sm">
             {new Date().toLocaleTimeString()}
           </div>
         </div>
 
-        {/* Damage Overlay */}
-        <DamageOverlay effects={damageEffects} />
+        {/* Damage Overlay - Only show in desktop destroyer mode */}
+        {gameMode === 'desktop-destroyer' && <DamageOverlay effects={damageEffects} />}
       </div>
     );
   }
