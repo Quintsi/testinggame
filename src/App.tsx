@@ -16,20 +16,91 @@ function App() {
   const [particles, setParticles] = useState<any[]>([]);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [volume, setVolume] = useState(50);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const desktopRef = useRef<HTMLDivElement>(null);
   const { startSound, stopSound, playSound } = useSoundEffects(volume / 100);
   
   // Pest Control game state
   const { bugs, gameStarted, score, startGame, killBug, resetGame } = usePestControl();
 
-  const tools: { id: Tool; icon: React.ComponentType; name: string; color: string }[] = [
-    { id: 'hammer', icon: Hammer, name: 'Hammer', color: 'text-yellow-400' },
-    { id: 'gun', icon: Target, name: 'Gun', color: 'text-red-400' },
-    { id: 'flamethrower', icon: Flame, name: 'flamethrower', color: 'text-orange-400' },
-    { id: 'laser', icon: Zap, name: 'Laser', color: 'text-blue-400' },
-    { id: 'bomb', icon: Bomb, name: 'Bomb', color: 'text-purple-400' },
-    { id: 'chainsaw', icon: Fan, name: 'Chainsaw', color: 'text-green-400' },
+  const tools: { id: Tool; icon: React.ComponentType; name: string; color: string; keyBinding: string }[] = [
+    { id: 'hammer', icon: Hammer, name: 'Hammer', color: 'text-yellow-400', keyBinding: '1' },
+    { id: 'gun', icon: Target, name: 'Gun', color: 'text-red-400', keyBinding: '2' },
+    { id: 'flamethrower', icon: Flame, name: 'flamethrower', color: 'text-orange-400', keyBinding: '3' },
+    { id: 'laser', icon: Zap, name: 'Laser', color: 'text-blue-400', keyBinding: '4' },
+    { id: 'bomb', icon: Bomb, name: 'Bomb', color: 'text-purple-400', keyBinding: '5' },
+    { id: 'chainsaw', icon: Fan, name: 'Chainsaw', color: 'text-green-400', keyBinding: '6' },
   ];
+
+  // Keyboard weapon switching
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      const keyToTool: { [key: string]: Tool } = {
+        '1': 'hammer',
+        '2': 'gun',
+        '3': 'flamethrower',
+        '4': 'laser',
+        '5': 'bomb',
+        '6': 'chainsaw',
+      };
+
+      const tool = keyToTool[event.key];
+      if (tool) {
+        setSelectedTool(tool);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyPress);
+    return () => document.removeEventListener('keydown', handleKeyPress);
+  }, []);
+
+  // Track mouse position globally
+  useEffect(() => {
+    const handleMouseMove = (event: MouseEvent) => {
+      const rect = desktopRef.current?.getBoundingClientRect();
+      if (rect) {
+        setMousePosition({
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top,
+        });
+      }
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    return () => document.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  // Get weapon hitbox based on tool type
+  const getWeaponHitbox = (x: number, y: number, tool: Tool) => {
+    switch (tool) {
+      case 'hammer':
+        return { x: x - 20, y: y - 20, width: 40, height: 40 };
+      case 'gun':
+        return { x: x - 15, y: y - 15, width: 30, height: 30 };
+      case 'flamethrower':
+        return { x: x - 30, y: y - 30, width: 60, height: 60 };
+      case 'laser':
+        return { x: x - 25, y: y - 5, width: 50, height: 10 };
+      case 'bomb':
+        return { x: x - 40, y: y - 40, width: 80, height: 80 };
+      case 'chainsaw':
+        return { x: x - 25, y: y - 25, width: 50, height: 50 };
+      default:
+        return { x: x - 15, y: y - 15, width: 30, height: 30 };
+    }
+  };
+
+  // Check collision between weapon and bug
+  const checkCollision = (weaponHitbox: any, bugX: number, bugY: number) => {
+    const bugHitbox = { x: bugX - 15, y: bugY - 15, width: 30, height: 30 };
+    
+    return (
+      weaponHitbox.x < bugHitbox.x + bugHitbox.width &&
+      weaponHitbox.x + weaponHitbox.width > bugHitbox.x &&
+      weaponHitbox.y < bugHitbox.y + bugHitbox.height &&
+      weaponHitbox.y + weaponHitbox.height > bugHitbox.y
+    );
+  };
 
   const handleDesktopMouseDown = useCallback((event: React.MouseEvent) => {
     // Only handle desktop destruction in desktop-destroyer mode
@@ -94,6 +165,55 @@ function App() {
 
   // Legacy click handler for backward compatibility
   const handleDesktopClick = useCallback((event: React.MouseEvent) => {
+    // Handle pest control mode
+    if (gameMode === 'pest-control' && gameStarted) {
+      const rect = desktopRef.current?.getBoundingClientRect();
+      if (!rect) return;
+
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+
+      // Get weapon hitbox
+      const weaponHitbox = getWeaponHitbox(x, y, selectedTool);
+
+      // Check for bug collisions
+      const hitBug = bugs.find(bug => checkCollision(weaponHitbox, bug.x, bug.y));
+
+      if (hitBug) {
+        // Play sound effect when hitting a bug
+        if (soundEnabled) {
+          try {
+            playSound(selectedTool);
+          } catch (error) {
+            console.warn('Could not play sound:', error);
+          }
+        }
+
+        // Kill the bug
+        killBug(hitBug.id);
+
+        // Create particles at bug location
+        const particleCount = 8;
+        const newParticles = Array.from({ length: particleCount }, (_, i) => ({
+          id: Date.now() + i,
+          x: hitBug.x,
+          y: hitBug.y,
+          tool: selectedTool,
+          angle: (Math.PI * 2 * i) / particleCount,
+          speed: Math.random() * 3 + 1,
+          life: 1,
+        }));
+
+        setParticles(prev => [...prev, ...newParticles]);
+
+        // Remove particles after animation
+        setTimeout(() => {
+          setParticles(prev => prev.filter(p => !newParticles.includes(p)));
+        }, 1500);
+      }
+      return;
+    }
+
     // Only handle desktop destruction in desktop-destroyer mode
     if (gameMode !== 'desktop-destroyer') return;
 
@@ -141,46 +261,12 @@ function App() {
     setTimeout(() => {
       setParticles(prev => prev.filter(p => !newParticles.includes(p)));
     }, 2000);
-  }, [selectedTool, soundEnabled, playSound, gameMode]);
+  }, [selectedTool, soundEnabled, playSound, gameMode, gameStarted, bugs, killBug]);
 
   const handleBugClick = useCallback((bugId: number, event: React.MouseEvent) => {
-    // Play sound effect when hitting a bug
-    if (soundEnabled) {
-      try {
-        playSound(selectedTool);
-      } catch (error) {
-        console.warn('Could not play sound:', error);
-      }
-    }
-
-    // Kill the bug
-    killBug(bugId);
-
-    // Create particles at bug location
-    const rect = desktopRef.current?.getBoundingClientRect();
-    if (rect) {
-      const x = event.clientX - rect.left;
-      const y = event.clientY - rect.top;
-
-      const particleCount = 8;
-      const newParticles = Array.from({ length: particleCount }, (_, i) => ({
-        id: Date.now() + i,
-        x,
-        y,
-        tool: selectedTool,
-        angle: (Math.PI * 2 * i) / particleCount,
-        speed: Math.random() * 3 + 1,
-        life: 1,
-      }));
-
-      setParticles(prev => [...prev, ...newParticles]);
-
-      // Remove particles after animation
-      setTimeout(() => {
-        setParticles(prev => prev.filter(p => !newParticles.includes(p)));
-      }, 1500);
-    }
-  }, [selectedTool, soundEnabled, playSound, killBug]);
+    // This is now handled by the main click handler with proper collision detection
+    event.stopPropagation();
+  }, []);
 
   const resetDesktop = () => {
     setDamageEffects([]);
@@ -236,10 +322,10 @@ function App() {
   const getInstructionText = () => {
     if (gameMode === 'pest-control') {
       return gameStarted 
-        ? `Hunt the bugs! Score: ${score} ${soundEnabled ? '🔊' : '🔇'}`
-        : `Click START to begin Pest Control! ${soundEnabled ? '🔊' : '🔇'}`;
+        ? `Hunt the bugs! Score: ${score} | Use keys 1-6 to switch weapons ${soundEnabled ? '🔊' : '🔇'}`
+        : `Click START to begin Pest Control! Use keys 1-6 to switch weapons ${soundEnabled ? '🔊' : '🔇'}`;
     }
-    return `Click anywhere on the desktop to destroy it with the selected tool! ${soundEnabled ? '🔊' : '🔇'}`;
+    return `Click anywhere on the desktop to destroy it! Use keys 1-6 to switch weapons ${soundEnabled ? '🔊' : '🔇'}`;
   };
 
   return (
@@ -269,6 +355,7 @@ function App() {
           damageEffects={damageEffects}
           selectedTool={selectedTool}
           gameMode={gameMode}
+          mousePosition={mousePosition}
         />
         
         {/* Pest Control Overlay */}
@@ -278,6 +365,8 @@ function App() {
             gameStarted={gameStarted}
             onStartGame={startGame}
             onBugClick={handleBugClick}
+            selectedTool={selectedTool}
+            mousePosition={mousePosition}
           />
         )}
         

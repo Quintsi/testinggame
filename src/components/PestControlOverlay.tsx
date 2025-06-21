@@ -1,18 +1,22 @@
 import React from 'react';
-import { Bug as BugType } from '../types/game';
+import { Bug as BugType, Tool } from '../types/game';
 
 interface PestControlOverlayProps {
   bugs: BugType[];
   gameStarted: boolean;
   onStartGame: () => void;
   onBugClick: (bugId: number, event: React.MouseEvent) => void;
+  selectedTool: Tool;
+  mousePosition: { x: number; y: number };
 }
 
 const PestControlOverlay: React.FC<PestControlOverlayProps> = ({ 
   bugs, 
   gameStarted, 
   onStartGame, 
-  onBugClick 
+  onBugClick,
+  selectedTool,
+  mousePosition
 }) => {
   return (
     <>
@@ -42,7 +46,7 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
             onBugClick(bug.id, e);
           }}
         >
-          <div className="w-8 h-8 bg-amber-800 rounded-full border-2 border-amber-900 shadow-lg hover:scale-110 transition-transform duration-150">
+          <div className="w-8 h-8 bg-amber-800 rounded-full border-2 border-amber-900 shadow-lg hover:scale-110 transition-transform duration-150 relative">
             {/* Bug details */}
             <div className="w-full h-full rounded-full bg-gradient-to-br from-amber-700 to-amber-900 flex items-center justify-center">
               <div className="w-2 h-2 bg-black rounded-full"></div>
@@ -52,6 +56,9 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
             <div className="absolute -right-1 top-1/2 w-2 h-0.5 bg-amber-900 transform rotate-45"></div>
             <div className="absolute -left-1 bottom-1/3 w-2 h-0.5 bg-amber-900 transform rotate-45"></div>
             <div className="absolute -right-1 bottom-1/3 w-2 h-0.5 bg-amber-900 transform -rotate-45"></div>
+            
+            {/* Bug hurt box visualization (for debugging - can be removed) */}
+            <div className="absolute -inset-2 border border-red-500 border-dashed rounded-full opacity-30"></div>
           </div>
         </div>
       ))}

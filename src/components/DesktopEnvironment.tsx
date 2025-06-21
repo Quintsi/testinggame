@@ -10,16 +10,16 @@ interface DesktopEnvironmentProps {
   damageEffects: DamageEffect[];
   selectedTool: Tool;
   gameMode: GameMode;
+  mousePosition: { x: number; y: number };
 }
 
 const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
-  ({ onClick, onMouseDown, onMouseUp, damageEffects, selectedTool, gameMode }, ref) => {
+  ({ onClick, onMouseDown, onMouseUp, damageEffects, selectedTool, gameMode, mousePosition }, ref) => {
     const [laserGunImage, setLaserGunImage] = useState(1); // 1 or 2
     const [gunImage, setGunImage] = useState(1); // 1 or 2
     const [hammerImage, setHammerImage] = useState(1); // 1 or 2
     const [flamethrowerImage, setFlamethrowerImage] = useState(1);
     const [chainsawImage, setChainsawImage] = useState(1);
-    const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
     const desktopIcons = [
       { id: 'documents', icon: Folder, label: 'Documents', x: 50, y: 50 },
@@ -31,18 +31,6 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
       { id: 'file1', icon: FileText, label: 'Important.txt', x: 200, y: 100 },
       { id: 'file2', icon: FileText, label: 'Resume.pdf', x: 200, y: 200 },
     ];
-
-    const handleMouseMove = (event: React.MouseEvent) => {
-      if (selectedTool === 'laser' || selectedTool === 'gun' || selectedTool === 'hammer' || selectedTool === 'flamethrower' || selectedTool === 'chainsaw') {
-        const rect = (ref as React.RefObject<HTMLDivElement>).current?.getBoundingClientRect();
-        if (rect) {
-          setMousePosition({
-            x: event.clientX - rect.left,
-            y: event.clientY - rect.top,
-          });
-        }
-      }
-    };
 
     const handleClick = (event: React.MouseEvent) => {
       // Switch laser gun image on each click when laser tool is selected
@@ -172,6 +160,47 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
       return '';
     };
 
+    // Get weapon hitbox for visual debugging (optional)
+    const getWeaponHitboxStyle = () => {
+      if (gameMode !== 'pest-control') return {};
+      
+      let hitbox;
+      switch (selectedTool) {
+        case 'hammer':
+          hitbox = { width: 40, height: 40 };
+          break;
+        case 'gun':
+          hitbox = { width: 30, height: 30 };
+          break;
+        case 'flamethrower':
+          hitbox = { width: 60, height: 60 };
+          break;
+        case 'laser':
+          hitbox = { width: 50, height: 10 };
+          break;
+        case 'bomb':
+          hitbox = { width: 80, height: 80 };
+          break;
+        case 'chainsaw':
+          hitbox = { width: 50, height: 50 };
+          break;
+        default:
+          hitbox = { width: 30, height: 30 };
+      }
+
+      return {
+        position: 'absolute' as const,
+        left: mousePosition.x - hitbox.width / 2,
+        top: mousePosition.y - hitbox.height / 2,
+        width: hitbox.width,
+        height: hitbox.height,
+        border: '2px dashed rgba(255, 0, 0, 0.5)',
+        borderRadius: selectedTool === 'laser' ? '4px' : '50%',
+        pointerEvents: 'none' as const,
+        zIndex: 45,
+      };
+    };
+
     return (
       <div 
         ref={ref}
@@ -179,7 +208,6 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
         onClick={handleClick}
         onMouseDown={handleMouseDown}
         onMouseUp={onMouseUp}
-        onMouseMove={handleMouseMove}
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
         }}
@@ -203,6 +231,11 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
               }}
             />
           </div>
+        )}
+
+        {/* Weapon Hitbox Visualization (for debugging - can be removed) */}
+        {gameMode === 'pest-control' && (
+          <div style={getWeaponHitboxStyle()} />
         )}
 
         {/* Desktop Icons - Only show in desktop destroyer mode */}

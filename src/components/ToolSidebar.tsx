@@ -5,7 +5,7 @@ import SoundToggle from './SoundToggle';
 import VolumeSlider from './VolumeSlider';
 
 interface ToolSidebarProps {
-  tools: { id: Tool; icon: React.ComponentType; name: string; color: string }[];
+  tools: { id: Tool; icon: React.ComponentType; name: string; color: string; keyBinding: string }[];
   selectedTool: Tool;
   onToolSelect: (tool: Tool) => void;
   onReset: () => void;
@@ -43,7 +43,7 @@ const ToolSidebar: React.FC<ToolSidebarProps> = ({
                 onClick={() => onToolSelect(tool.id)}
                 className={`
                   w-full p-3 rounded-lg transition-all duration-200 
-                  flex flex-col items-center space-y-1 group
+                  flex flex-col items-center space-y-1 group relative
                   ${isSelected 
                     ? 'bg-gray-700 ring-2 ring-blue-400 scale-105' 
                     : 'bg-gray-700/50 hover:bg-gray-700 hover:scale-102'
@@ -56,6 +56,13 @@ const ToolSidebar: React.FC<ToolSidebarProps> = ({
                 <span className={`text-xs font-medium ${isSelected ? 'text-white' : 'text-gray-400 group-hover:text-white'}`}>
                   {tool.name}
                 </span>
+                {/* Key binding indicator */}
+                <div className={`
+                  absolute -top-1 -right-1 w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center
+                  ${isSelected ? 'bg-blue-400 text-white' : 'bg-gray-600 text-gray-300'}
+                `}>
+                  {tool.keyBinding}
+                </div>
               </button>
             );
           })}
