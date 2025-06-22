@@ -25,12 +25,12 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({ particles }) => {
           ...particle,
           offsetX: particle.offsetX + Math.cos(particle.angle) * particle.speed,
           offsetY: particle.offsetY + Math.sin(particle.angle) * particle.speed + (particle.tool === 'paintball' ? 1 : 2), // Less gravity for paintball
-          life: Math.max(0, particle.life - (particle.tool === 'paintball' ? 0.015 : 0.02)), // Slower fade for paintball
+          life: Math.max(0, particle.life - (particle.tool === 'paintball' ? 0.03 : (particle.tool === 'flamethrower' ? 0.008 : 0.02))), // Much slower fade for flamethrower
         }))
       );
     }, 16);
 
-    const timeout = particle => particle.tool === 'paintball' ? 3000 : 2000;
+    const timeout = (particle: Particle) => particle.tool === 'paintball' ? 1500 : (particle.tool === 'flamethrower' ? 3000 : 2000);
     setTimeout(() => {
       clearInterval(animationInterval);
       setAnimatedParticles([]);
@@ -40,7 +40,7 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({ particles }) => {
   }, [particles]);
 
   // Create flower petal shape using CSS
-  const getFlowerPetalStyle = (particle: Particle & { offsetX: number; offsetY: number }, petalIndex: number) => {
+  const getFlowerPetalStyle = (particle: Particle & { offsetX: number; offsetY: number }, petalIndex: number): React.CSSProperties => {
     const petalAngle = (petalIndex * 60) + Math.random() * 20 - 10; // 6 petals with some randomness
     const petalDistance = 8 + Math.random() * 6;
     
@@ -78,7 +78,7 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({ particles }) => {
           ...baseStyle,
           width: 6,
           height: 6,
-          background: '#8B4513',
+          background: '#FFFFFF',
           borderRadius: '50%',
         };
       
@@ -95,12 +95,12 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({ particles }) => {
       case 'flamethrower':
         return {
           ...baseStyle,
-          width: 8,
-          height: 12,
-          background: `linear-gradient(to top, #FF4500 0%, #FF8C00 50%, #FFD700 100%)`,
-          borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%',
+          width: 6,
+          height: 8,
+          background: `linear-gradient(to top, #FF4500 0%, #FF8C00 100%)`,
+          borderRadius: '50%',
         };
-      
+        
       case 'laser':
         return {
           ...baseStyle,
@@ -114,14 +114,13 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({ particles }) => {
       case 'paintball':
         // For paintball, we'll render flower petals instead of regular particles
         return null; // We'll handle this separately
-        
+      
       case 'chainsaw':
         return {
           ...baseStyle,
-          width: 5,
-          height: 5,
+          width: 4,
+          height: 7,
           background: '#8B4513',
-          borderRadius: '50%',
         };
       
       default:

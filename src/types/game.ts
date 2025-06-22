@@ -11,6 +11,12 @@ export interface DamageEffect {
   color?: string; // Add color property for paintball effects
 }
 
+export interface ChainsawPathEffect {
+  id: number;
+  path: { x: number; y: number }[];
+  timestamp: number;
+}
+
 export interface Particle {
   id: number;
   x: number;
@@ -21,6 +27,7 @@ export interface Particle {
   life: number;
   color?: string; // Add color property for paintball particles
   size?: number; // Add size property for varied particle sizes
+  image?: string; // Add image property for image-based particles
 }
 
 export interface DesktopWindow {

@@ -1,0 +1,131 @@
+import React, { useCallback, useEffect, useRef } from 'react';
+import { Tool, GameMode } from '../../types/game';
+import { useDamageEffects } from '../../hooks/useDamageEffects';
+import { useParticleEffects } from '../../hooks/useParticleEffects';
+import { useMouseHandlers } from '../../hooks/useMouseHandlers';
+import { useSoundEffects } from '../../hooks/useSoundEffects';
+
+export const useDesktopInteraction = (
+  selectedTool: Tool,
+  gameMode: GameMode,
+  mousePosition: { x: number; y: number },
+  isMouseDown: boolean,
+  chainsawPath: { x: number; y: number }[],
+  bugs: any[],
+  gameStarted: boolean,
+  setMousePosition: (position: { x: number; y: number }) => void,
+  setIsMouseDown: (down: boolean) => void,
+  setChainsawPath: React.Dispatch<React.SetStateAction<{ x: number; y: number }[]>>,
+  setChainsawPaths: React.Dispatch<React.SetStateAction<any[]>>,
+  setDamageEffects: React.Dispatch<React.SetStateAction<any[]>>,
+  setParticles: React.Dispatch<React.SetStateAction<any[]>>,
+  setSelectedTool: (tool: Tool) => void,
+  killBug: (id: number) => void,
+  volume: number,
+  soundEnabled: boolean
+) => {
+  const desktopRef = useRef<HTMLDivElement>(null);
+  const { createDamageEffect, getRandomPaintColor } = useDamageEffects();
+  const { createParticles, createPaintballParticles, createBugParticles } = useParticleEffects();
+  const { startSound, stopSound, playSound } = useSoundEffects(volume / 100);
+  const { getWeaponHitbox, checkCollision } = useMouseHandlers(
+    selectedTool, gameMode, mousePosition, isMouseDown, chainsawPath,
+    setMousePosition, setIsMouseDown, setChainsawPath, setChainsawPaths, desktopRef
+  );
+
+  // Handle tool changes from keyboard
+  useEffect(() => {
+    const handleToolChange = (event: CustomEvent) => {
+      setSelectedTool(event.detail);
+    };
+    window.addEventListener('toolChange', handleToolChange as EventListener);
+    return () => window.removeEventListener('toolChange', handleToolChange as EventListener);
+  }, [setSelectedTool]);
+
+  const handleDesktopMouseDown = useCallback((event: React.MouseEvent) => {
+    if (gameMode !== 'desktop-destroyer') return;
+    const rect = desktopRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    setIsMouseDown(true);
+
+    if (selectedTool === 'chainsaw') setChainsawPath([{ x, y }]);
+    if (soundEnabled) {
+      if (selectedTool === 'hammer') {
+        playSound(selectedTool);
+      } else if (selectedTool === 'chainsaw' || selectedTool === 'gun') {
+        startSound(selectedTool);
+      } else {
+        playSound(selectedTool);
+      }
+    }
+    if (selectedTool !== 'chainsaw') {
+      createDamageEffect(x, y, selectedTool, { current: null }, setDamageEffects);
+      createParticles(x, y, selectedTool, getRandomPaintColor, setParticles);
+    }
+  }, [selectedTool, soundEnabled, startSound, playSound, gameMode, createDamageEffect, createParticles, getRandomPaintColor, setDamageEffects, setParticles, setIsMouseDown, setChainsawPath]);
+
+  const handleDesktopMouseUp = useCallback(() => {
+    setIsMouseDown(false);
+    if (selectedTool === 'chainsaw') {
+      setChainsawPath([]);
+      if (soundEnabled) stopSound(selectedTool);
+    }
+    if (selectedTool === 'gun' && soundEnabled) {
+      stopSound(selectedTool);
+    }
+  }, [selectedTool, soundEnabled, stopSound, setIsMouseDown, setChainsawPath]);
+
+  // Continuous firing effect for gun
+  useEffect(() => {
+    if (!isMouseDown || selectedTool !== 'gun' || gameMode !== 'desktop-destroyer') return;
+
+    const interval = setInterval(() => {
+      createDamageEffect(mousePosition.x, mousePosition.y, selectedTool, { current: null }, setDamageEffects);
+      createParticles(mousePosition.x, mousePosition.y, selectedTool, getRandomPaintColor, setParticles);
+    }, 10); 
+
+    return () => clearInterval(interval);
+  }, [isMouseDown, selectedTool, gameMode, mousePosition, createDamageEffect, createParticles, getRandomPaintColor, setDamageEffects, setParticles]);
+
+  const handleDesktopClick = useCallback((event: React.MouseEvent) => {
+    // Handle pest control mode
+    if (gameMode === 'pest-control' && gameStarted) {
+      const rect = desktopRef.current?.getBoundingClientRect();
+      if (!rect) return;
+
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      const weaponHitbox = getWeaponHitbox(x, y, selectedTool);
+      const hitBug = bugs.find(bug => checkCollision(weaponHitbox, bug.x, bug.y));
+
+      if (hitBug) {
+        if (soundEnabled) playSound(selectedTool);
+        killBug(hitBug.id);
+        createBugParticles(hitBug.x, hitBug.y, selectedTool, getRandomPaintColor, setParticles);
+      }
+      return;
+    }
+
+    // Handle desktop destruction mode - only for pest control, no damage/particles on click
+    if (gameMode !== 'desktop-destroyer') return;
+  }, [selectedTool, soundEnabled, playSound, gameMode, gameStarted, bugs, killBug, getWeaponHitbox, checkCollision, createBugParticles, getRandomPaintColor, setParticles]);
+
+  // Global mouse up handler to stop sounds when mouse is released outside desktop
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      if (soundEnabled && (selectedTool === 'chainsaw' || selectedTool === 'gun')) stopSound(selectedTool);
+    };
+    document.addEventListener('mouseup', handleGlobalMouseUp);
+    return () => document.removeEventListener('mouseup', handleGlobalMouseUp);
+  }, [selectedTool, soundEnabled, stopSound]);
+
+  return {
+    desktopRef,
+    handleDesktopMouseDown,
+    handleDesktopMouseUp,
+    handleDesktopClick,
+  };
+}; 

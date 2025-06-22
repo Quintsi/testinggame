@@ -1,8 +1,8 @@
-import React from 'react';
-import { RotateCcw } from 'lucide-react';
-import { Tool } from '../types/game';
-import SoundToggle from './SoundToggle';
-import VolumeSlider from './VolumeSlider';
+import React, { useState } from 'react';
+import { RotateCcw, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Tool } from '../../types/game';
+import SoundToggle from '../ui/SoundToggle';
+import VolumeSlider from '../ui/VolumeSlider';
 
 interface ToolSidebarProps {
   tools: { id: Tool; icon: React.ComponentType; name: string; color: string; keyBinding: string }[];
@@ -25,9 +25,20 @@ const ToolSidebar: React.FC<ToolSidebarProps> = ({
   volume,
   onVolumeChange,
 }) => {
+  const [isOpen, setIsOpen] = useState(true);
+
   return (
-    <div className="absolute left-4 top-1/2 transform -translate-y-1/2 z-50">
-      <div className="bg-gray-800/90 backdrop-blur-sm rounded-xl p-4 shadow-2xl border border-gray-700">
+    <>
+      {/* Sidebar Content */}
+      <div 
+        className={`
+          absolute left-0 top-1/2 transform -translate-y-1/2 z-50
+          bg-gray-800/90 backdrop-blur-sm rounded-r-xl p-4 shadow-2xl border border-gray-700 border-l-0
+          transition-all duration-300 ease-in-out
+          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+          ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'}
+        `}
+      >
         <h3 className="text-white font-bold text-lg mb-4 text-center">
           Destruction Tools
         </h3>
@@ -69,8 +80,10 @@ const ToolSidebar: React.FC<ToolSidebarProps> = ({
         </div>
 
         <div className="border-t border-gray-600 pt-3 space-y-3">
-          <SoundToggle soundEnabled={soundEnabled} onToggle={onSoundToggle} />
-          <VolumeSlider volume={volume} onVolumeChange={onVolumeChange} />
+          <div className="flex items-center space-x-2">
+            <SoundToggle soundEnabled={soundEnabled} volume={volume} onToggle={onSoundToggle} />
+            <VolumeSlider volume={volume} onVolumeChange={onVolumeChange} />
+          </div>
           
           <button
             onClick={onReset}
@@ -83,7 +96,19 @@ const ToolSidebar: React.FC<ToolSidebarProps> = ({
           </button>
         </div>
       </div>
-    </div>
+
+      {/* Toggle Button - positioned at left edge of screen, same level as sound button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="absolute left-0 top-1/2 transform -translate-y-1/2 translate-y-8 w-12 h-12 bg-gray-800/90 backdrop-blur-sm rounded-r-lg border border-gray-700 border-l-0 flex items-center justify-center hover:bg-gray-700/90 transition-all duration-300 z-[60]"
+      >
+        {isOpen ? (
+          <ChevronLeft className="w-6 h-6 text-white" />
+        ) : (
+          <ChevronRight className="w-6 h-6 text-white" />
+        )}
+      </button>
+    </>
   );
 };
 

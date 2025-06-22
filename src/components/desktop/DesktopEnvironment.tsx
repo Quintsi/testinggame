@@ -1,37 +1,39 @@
 import React, { forwardRef, useState, useEffect } from 'react';
 import { Folder, FileText, Image, Music, Video, Settings, Trash2 } from 'lucide-react';
-import { DamageEffect, Tool, GameMode } from '../types/game';
 import DamageOverlay from './DamageOverlay';
+import { DamageEffect, ChainsawPathEffect, Tool, GameMode } from '../../types/game';
 
 interface DesktopEnvironmentProps {
   onClick?: (event: React.MouseEvent) => void;
   onMouseDown?: (event: React.MouseEvent) => void;
   onMouseUp?: (event: React.MouseEvent) => void;
   damageEffects: DamageEffect[];
+  chainsawPaths: ChainsawPathEffect[];
   selectedTool: Tool;
   gameMode: GameMode;
   mousePosition: { x: number; y: number };
 }
 
 const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
-  ({ onClick, onMouseDown, onMouseUp, damageEffects, selectedTool, gameMode, mousePosition }, ref) => {
+  ({ onClick, onMouseDown, onMouseUp, damageEffects, chainsawPaths, selectedTool, gameMode, mousePosition }, ref) => {
     const [laserGunImage, setLaserGunImage] = useState(1); // 1 or 2
     const [gunImage, setGunImage] = useState(1); // 1 or 2
     const [hammerImage, setHammerImage] = useState(1); // 1 or 2
     const [flamethrowerImage, setFlamethrowerImage] = useState(1);
     const [chainsawImage, setChainsawImage] = useState(1);
     const [paintballImage, setPaintballImage] = useState(1);
+    const [backgroundImage, setBackgroundImage] = useState('');
 
-    const desktopIcons = [
-      { id: 'documents', icon: Folder, label: 'Documents', x: 50, y: 50 },
-      { id: 'pictures', icon: Image, label: 'Pictures', x: 50, y: 150 },
-      { id: 'music', icon: Music, label: 'Music', x: 50, y: 250 },
-      { id: 'videos', icon: Video, label: 'Videos', x: 50, y: 350 },
-      { id: 'settings', icon: Settings, label: 'Settings', x: 50, y: 450 },
-      { id: 'trash', icon: Trash2, label: 'Recycle Bin', x: 50, y: 550 },
-      { id: 'file1', icon: FileText, label: 'Important.txt', x: 200, y: 100 },
-      { id: 'file2', icon: FileText, label: 'Resume.pdf', x: 200, y: 200 },
-    ];
+    // Select random background image on component mount
+    useEffect(() => {
+      const backgrounds = [
+        '/asset/backgroundImage/background1.png',
+        '/asset/backgroundImage/background2.jpg',
+        '/asset/backgroundImage/background3.png'
+      ];
+      const randomBackground = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+      setBackgroundImage(randomBackground);
+    }, []);
 
     const handleClick = (event: React.MouseEvent) => {
       // Switch images on each click when respective tool is selected
@@ -106,23 +108,22 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
 
     const getCurrentWeaponImage = () => {
       if (selectedTool === 'laser') {
-        return `/images/fg${laserGunImage}.png`;
+        return `/asset/weaponImage/fg${laserGunImage}.png`;
       }
       if (selectedTool === 'gun') {
-        return `/images/g${gunImage}.png`;
+        return `/asset/weaponImage/g${gunImage}.png`;
       }
       if (selectedTool === 'hammer') {
-        return `/images/h${hammerImage}.png`;
+        return `/asset/weaponImage/h${hammerImage}.png`;
       }
       if (selectedTool === 'flamethrower') {
-        return `/images/ft${flamethrowerImage}.png`;
+        return `/asset/weaponImage/ft${flamethrowerImage}.png`;
       }
       if (selectedTool === 'chainsaw') {
-        return `/images/cs${chainsawImage}.png`; 
+        return `/asset/weaponImage/cs${chainsawImage}.png`; 
       }
       if (selectedTool === 'paintball') {
-        // Use a paintball gun image - we'll create a simple paintball gun cursor
-        return null; // We'll render a custom paintball gun cursor
+        return `/asset/weaponImage/pbg${paintballImage}.png`; 
       }
       return '';
     };
@@ -212,31 +213,18 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
       };
     };
 
-    // Custom Paintball Gun Cursor Component
-    const PaintballGunCursor = () => (
-      <div className="relative">
-        <div className="w-16 h-16 flex items-center justify-center">
-          {/* Paintball gun body */}
-          <div className="relative">
-            <div className="w-12 h-3 bg-gradient-to-r from-gray-700 to-gray-900 rounded-full"></div>
-            <div className="absolute -top-1 left-8 w-6 h-5 bg-gradient-to-b from-pink-400 to-pink-600 rounded-lg"></div>
-            <div className="absolute -top-0.5 left-2 w-2 h-2 bg-pink-500 rounded-full animate-pulse"></div>
-            {/* Barrel */}
-            <div className="absolute -top-0.5 -right-2 w-4 h-2 bg-gray-800 rounded-r-full"></div>
-          </div>
-        </div>
-      </div>
-    );
-
     return (
       <div 
         ref={ref}
-        className={`relative w-full h-screen bg-gradient-to-br from-blue-500 to-purple-600 overflow-hidden ${getCursor()}`}
+        className={`relative w-full h-screen overflow-hidden ${getCursor()}`}
         onClick={handleClick}
         onMouseDown={handleMouseDown}
         onMouseUp={onMouseUp}
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          backgroundImage: backgroundImage ? `url("${backgroundImage}")` : 'linear-gradient(to bottom right, #3B82F6, #8B5CF6)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
         }}
       >
         {/* Custom Weapon Cursor */}
@@ -244,16 +232,11 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
           <div
             className="absolute pointer-events-none z-50"
             style={{
-              left: mousePosition.x - 25,
+              left: mousePosition.x + 10,
               top: mousePosition.y - 25,
-              transform: 'translate(-50%, -50%)',
+              transform: 'translate(0, -50%)',
             }}
           >
-            {selectedTool === 'paintball' ? (
-              <div style={{ filter: getWeaponGlow() }}>
-                <PaintballGunCursor />
-              </div>
-            ) : (
               <img
                 src={getCurrentWeaponImage()}
                 alt={getWeaponAltText()}
@@ -262,7 +245,6 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
                   filter: getWeaponGlow(),
                 }}
               />
-            )}
           </div>
         )}
 
@@ -271,63 +253,22 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
           <div style={getWeaponHitboxStyle()} />
         )}
 
-        {/* Desktop Icons - Only show in desktop destroyer mode */}
-        {gameMode === 'desktop-destroyer' && desktopIcons.map((icon) => {
-          const IconComponent = icon.icon;
-          return (
-            <div
-              key={icon.id}
-              className="absolute flex flex-col items-center space-y-1 p-2 rounded-lg hover:bg-white/20 transition-all duration-200 cursor-pointer select-none"
-              style={{ left: icon.x, top: icon.y }}
-            >
-              <div className="p-3 bg-white/90 rounded-lg shadow-lg">
-                <IconComponent className="w-8 h-8 text-blue-600" />
-              </div>
-              <span className="text-white text-xs font-medium bg-black/50 px-2 py-1 rounded">
-                {icon.label}
-              </span>
-            </div>
-          );
-        })}
-
         {/* Sample Windows - Only show in desktop destroyer mode */}
         {gameMode === 'desktop-destroyer' && (
-          <>
-            <div className="absolute top-20 left-1/4 w-96 h-64 bg-white rounded-lg shadow-2xl border border-gray-300">
-              <div className="bg-blue-600 text-white px-4 py-2 rounded-t-lg flex items-center justify-between">
-                <span className="font-medium">My Computer</span>
-                <div className="flex space-x-2">
-                  <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                  <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                </div>
-              </div>
-              <div className="p-4 h-full bg-white">
-                <div className="grid grid-cols-4 gap-4">
-                  {[...Array(8)].map((_, i) => (
-                    <div key={i} className="flex flex-col items-center space-y-1">
-                      <Folder className="w-8 h-8 text-yellow-500" />
-                      <span className="text-xs">Folder {i + 1}</span>
-                    </div>
-                  ))}
-                </div>
+          <div className="absolute top-32 right-1/4 w-80 h-48 bg-white rounded-lg shadow-2xl border border-gray-300 pointer-events-none">
+            <div className="bg-gray-200 text-gray-800 px-4 py-2 rounded-t-lg flex items-center justify-between">
+              <span className="font-medium">Notepad</span>
+              <div className="flex space-x-2">
+                <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                <div className="w-3 h-3 bg-red-400 rounded-full"></div>
               </div>
             </div>
-
-            <div className="absolute top-32 right-1/4 w-80 h-48 bg-white rounded-lg shadow-2xl border border-gray-300">
-              <div className="bg-gray-200 text-gray-800 px-4 py-2 rounded-t-lg flex items-center justify-between">
-                <span className="font-medium">Notepad</span>
-                <div className="flex space-x-2">
-                  <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                  <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                </div>
-              </div>
-              <div className="p-4 h-full bg-white">
-                <p className="text-sm text-gray-700">
-                  This is a sample text document that you can destroy with various tools!
-                </p>
-              </div>
+            <div className="p-4 h-full bg-white">
+              <p className="text-sm text-gray-700">
+                This is a sample text document that you can destroy with various tools!
+              </p>
             </div>
-          </>
+          </div>
         )}
 
         {/* Taskbar */}
@@ -337,10 +278,7 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
           </div>
           <div className="flex space-x-2 flex-1">
             {gameMode === 'desktop-destroyer' && (
-              <>
-                <div className="bg-gray-700 text-white px-3 py-1 rounded text-sm">My Computer</div>
-                <div className="bg-gray-700 text-white px-3 py-1 rounded text-sm">Notepad</div>
-              </>
+              <div className="bg-gray-700 text-white px-3 py-1 rounded text-sm">Notepad</div>
             )}
             {gameMode === 'pest-control' && (
               <div className="bg-gray-700 text-white px-3 py-1 rounded text-sm">Pest Control</div>
@@ -352,7 +290,7 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
         </div>
 
         {/* Damage Overlay - Only show in desktop destroyer mode */}
-        {gameMode === 'desktop-destroyer' && <DamageOverlay effects={damageEffects} />}
+        {gameMode === 'desktop-destroyer' && <DamageOverlay effects={damageEffects} chainsawPaths={chainsawPaths} />}
       </div>
     );
   }

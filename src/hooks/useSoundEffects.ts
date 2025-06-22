@@ -4,12 +4,12 @@ import { Tool } from '../types/game';
 export const useSoundEffects = (volume: number = 0.5) => {
   // Pre-load audio files for better performance
   const audioFiles = useMemo(() => ({
-    hammer: new Audio('public/asset/soundeffect/hammer.wav'),
-    gun: new Audio('public/asset/soundeffect/gun.mp3'),
-    flamethrower: new Audio('public/asset/soundeffect/flamethrower.mp3'),
-    laser: new Audio('public/asset/soundeffect/laser.mp3'),
-    paintball: new Audio('public/asset/soundeffect/gun.mp3'), // Reuse gun sound for paintball
-    chainsaw: new Audio('public/asset/soundeffect/chainsaw.wav'),
+    hammer: new Audio('/asset/soundeffect/hammer.wav'),
+    gun: new Audio('/asset/soundeffect/gun1.mp3'),
+    flamethrower: new Audio('/asset/soundeffect/flamethrower.mp3'),
+    laser: new Audio('/asset/soundeffect/laser.mp3'),
+    paintball: new Audio('/asset/soundeffect/paintball.mp3'), 
+    chainsaw: new Audio('/asset/soundeffect/chainsaw.wav'),
   }), []);
 
   // Store currently playing audio for each tool
@@ -28,7 +28,7 @@ export const useSoundEffects = (volume: number = 0.5) => {
 
       // Create a new audio instance for continuous playback
       const newAudio = new Audio(audio.src);
-      newAudio.volume = 0.5;
+      newAudio.volume = volume;
       newAudio.loop = true; // Enable looping for continuous playback
       
       // Store the playing audio
@@ -39,7 +39,7 @@ export const useSoundEffects = (volume: number = 0.5) => {
         console.warn('Failed to play sound:', error);
       });
     }
-  }, [audioFiles, playingAudio]);
+  }, [audioFiles, playingAudio, volume]);
 
   const stopSound = useCallback((tool: Tool) => {
     const audio = playingAudio.get(tool);
@@ -60,15 +60,15 @@ export const useSoundEffects = (volume: number = 0.5) => {
       // Reset audio to beginning if it's already playing
       audio.currentTime = 0;
       
-      // Set volume to a reasonable level
-      audio.volume = 0.5;
+      // Set volume using the volume parameter
+      audio.volume = volume;
       
       // Play the sound
       audio.play().catch(error => {
         console.warn('Failed to play sound:', error);
       });
     }
-  }, [audioFiles]);
+  }, [audioFiles, volume]);
 
   return { startSound, stopSound, playSound };
 };
