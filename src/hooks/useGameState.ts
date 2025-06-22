@@ -15,7 +15,7 @@ export const useGameState = () => {
   const [chainsawPath, setChainsawPath] = useState<{ x: number; y: number }[]>([]);
   const lastFlamethrowerDamage = useRef<{ x: number; y: number } | null>(null);
   
-  const { bugs, gameStarted, score, startGame, killBug, resetGame } = usePestControl();
+  const { bugs, gameStarted, gameEnded, score, timeLeft, startGame, killBug, resetGame } = usePestControl();
 
   const resetDesktop = () => {
     setDamageEffects([]);
@@ -47,7 +47,9 @@ export const useGameState = () => {
     lastFlamethrowerDamage,
     bugs,
     gameStarted,
+    gameEnded,
     score,
+    timeLeft,
     
     // Setters
     setSelectedTool,
@@ -66,4 +68,4 @@ export const useGameState = () => {
     startGame,
     killBug,
   };
-}; 
+};

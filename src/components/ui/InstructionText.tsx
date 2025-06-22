@@ -1,5 +1,5 @@
 import React from 'react';
-import { GameMode } from '../types/game';
+import { GameMode } from '../../types/game';
 
 interface InstructionTextProps {
   gameMode: GameMode;
@@ -29,4 +29,4 @@ export const InstructionText: React.FC<InstructionTextProps> = ({
       {getInstructionText()}
     </div>
   );
-}; 
+};

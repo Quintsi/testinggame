@@ -26,7 +26,9 @@ function App() {
     lastFlamethrowerDamage,
     bugs,
     gameStarted,
+    gameEnded,
     score,
+    timeLeft,
     
     // Setters
     setSelectedTool,
@@ -128,6 +130,9 @@ function App() {
           <PestControlOverlay
             bugs={bugs}
             gameStarted={gameStarted}
+            gameEnded={gameEnded}
+            score={score}
+            timeLeft={timeLeft}
             onStartGame={startGame}
             onBugClick={() => {}} // Handled in desktop interaction
             selectedTool={selectedTool}
