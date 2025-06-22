@@ -39,6 +39,28 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({ particles }) => {
     return () => clearInterval(animationInterval);
   }, [particles]);
 
+  // Create flower petal shape using CSS
+  const getFlowerPetalStyle = (particle: Particle & { offsetX: number; offsetY: number }, petalIndex: number) => {
+    const petalAngle = (petalIndex * 60) + Math.random() * 20 - 10; // 6 petals with some randomness
+    const petalDistance = 8 + Math.random() * 6;
+    
+    return {
+      position: 'absolute' as const,
+      left: particle.x + particle.offsetX + Math.cos(petalAngle * Math.PI / 180) * petalDistance,
+      top: particle.y + particle.offsetY + Math.sin(petalAngle * Math.PI / 180) * petalDistance,
+      width: 12 + Math.random() * 8,
+      height: 20 + Math.random() * 10,
+      background: `linear-gradient(45deg, ${particle.color || '#FF6B6B'}, ${particle.color || '#FF6B6B'}AA)`,
+      borderRadius: '50% 10% 50% 10%',
+      transform: `rotate(${petalAngle}deg)`,
+      opacity: particle.life * 0.8,
+      pointerEvents: 'none' as const,
+      zIndex: 20,
+      filter: 'blur(0.5px)',
+      boxShadow: `0 0 4px ${particle.color || '#FF6B6B'}66`,
+    };
+  };
+
   // damage effect
   const getParticleStyle = (particle: Particle & { offsetX: number; offsetY: number }) => {
     const baseStyle = {
@@ -90,18 +112,9 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({ particles }) => {
         };
       
       case 'paintball':
-        const size = particle.size || 6;
-        return {
-          ...baseStyle,
-          width: size,
-          height: size,
-          background: particle.color || '#FF6B6B',
-          borderRadius: '47% 53% 42% 58% / 45% 48% 52% 55%', // Distorted flower shape
-          transform: `rotate(${Math.random() * 360}deg)`,
-          filter: 'blur(0.3px)',
-          boxShadow: `0 0 ${size/2}px ${particle.color || '#FF6B6B'}66`,
-        };
-
+        // For paintball, we'll render flower petals instead of regular particles
+        return null; // We'll handle this separately
+        
       case 'chainsaw':
         return {
           ...baseStyle,
@@ -118,12 +131,47 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({ particles }) => {
 
   return (
     <>
-      {animatedParticles.map((particle) => (
-        <div
-          key={particle.id}
-          style={getParticleStyle(particle)}
-        />
-      ))}
+      {animatedParticles.map((particle) => {
+        if (particle.tool === 'paintball') {
+          // Render flower petals for paintball
+          return (
+            <div key={particle.id}>
+              {/* Center of flower */}
+              <div
+                style={{
+                  position: 'absolute' as const,
+                  left: particle.x + particle.offsetX - 4,
+                  top: particle.y + particle.offsetY - 4,
+                  width: 8,
+                  height: 8,
+                  background: `radial-gradient(circle, ${particle.color || '#FF6B6B'}, ${particle.color || '#FF6B6B'}CC)`,
+                  borderRadius: '50%',
+                  opacity: particle.life,
+                  pointerEvents: 'none' as const,
+                  zIndex: 21,
+                  boxShadow: `0 0 6px ${particle.color || '#FF6B6B'}`,
+                }}
+              />
+              {/* Flower petals */}
+              {Array.from({ length: 6 }, (_, i) => (
+                <div
+                  key={`petal-${i}`}
+                  style={getFlowerPetalStyle(particle, i)}
+                />
+              ))}
+            </div>
+          );
+        } else {
+          // Render regular particles for other tools
+          const style = getParticleStyle(particle);
+          return style ? (
+            <div
+              key={particle.id}
+              style={style}
+            />
+          ) : null;
+        }
+      })}
     </>
   );
 };

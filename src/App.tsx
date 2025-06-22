@@ -144,19 +144,37 @@ function App() {
 
     setDamageEffects(prev => [...prev, newDamage]);
 
-    // Create particles based on tool
-    const particleCount = selectedTool === 'paintball' ? 25 : selectedTool === 'flamethrower' ? 15 : 8;
-    const newParticles = Array.from({ length: particleCount }, (_, i) => ({
-      id: Date.now() + i,
-      x,
-      y,
-      tool: selectedTool,
-      angle: (Math.PI * 2 * i) / particleCount + (Math.random() - 0.5) * 0.5, // Add some randomness
-      speed: Math.random() * 5 + 2,
-      life: 1,
-      color: selectedTool === 'paintball' ? getRandomPaintColor() : undefined,
-      size: selectedTool === 'paintball' ? Math.random() * 8 + 4 : undefined,
-    }));
+    // Create particles based on tool - special handling for paintball flowers
+    let particleCount;
+    if (selectedTool === 'paintball') {
+      particleCount = 12; // Fewer particles but they'll be flower-shaped
+    } else if (selectedTool === 'flamethrower') {
+      particleCount = 15;
+    } else {
+      particleCount = 8;
+    }
+
+    const newParticles = Array.from({ length: particleCount }, (_, i) => {
+      let angle;
+      if (selectedTool === 'paintball') {
+        // Create flower pattern - particles arranged in petal positions
+        angle = (Math.PI * 2 * i) / particleCount + (Math.random() - 0.5) * 0.3;
+      } else {
+        angle = (Math.PI * 2 * i) / particleCount + (Math.random() - 0.5) * 0.5;
+      }
+
+      return {
+        id: Date.now() + i,
+        x,
+        y,
+        tool: selectedTool,
+        angle,
+        speed: selectedTool === 'paintball' ? Math.random() * 3 + 1 : Math.random() * 5 + 2,
+        life: 1,
+        color: selectedTool === 'paintball' ? getRandomPaintColor() : undefined,
+        size: selectedTool === 'paintball' ? Math.random() * 8 + 4 : undefined,
+      };
+    });
 
     setParticles(prev => [...prev, ...newParticles]);
 
@@ -207,7 +225,7 @@ function App() {
         killBug(hitBug.id);
 
         // Create particles at bug location with color for paintball
-        const particleCount = selectedTool === 'paintball' ? 15 : 8;
+        const particleCount = selectedTool === 'paintball' ? 8 : 8;
         const newParticles = Array.from({ length: particleCount }, (_, i) => ({
           id: Date.now() + i,
           x: hitBug.x,
@@ -262,18 +280,36 @@ function App() {
     setDamageEffects(prev => [...prev, newDamage]);
 
     // Create particles based on tool
-    const particleCount = selectedTool === 'paintball' ? 25 : selectedTool === 'flamethrower' ? 15 : 8;
-    const newParticles = Array.from({ length: particleCount }, (_, i) => ({
-      id: Date.now() + i,
-      x,
-      y,
-      tool: selectedTool,
-      angle: (Math.PI * 2 * i) / particleCount + (Math.random() - 0.5) * 0.5,
-      speed: Math.random() * 5 + 2,
-      life: 1,
-      color: selectedTool === 'paintball' ? getRandomPaintColor() : undefined,
-      size: selectedTool === 'paintball' ? Math.random() * 8 + 4 : undefined,
-    }));
+    let particleCount;
+    if (selectedTool === 'paintball') {
+      particleCount = 12; // Fewer particles but they'll be flower-shaped
+    } else if (selectedTool === 'flamethrower') {
+      particleCount = 15;
+    } else {
+      particleCount = 8;
+    }
+
+    const newParticles = Array.from({ length: particleCount }, (_, i) => {
+      let angle;
+      if (selectedTool === 'paintball') {
+        // Create flower pattern - particles arranged in petal positions
+        angle = (Math.PI * 2 * i) / particleCount + (Math.random() - 0.5) * 0.3;
+      } else {
+        angle = (Math.PI * 2 * i) / particleCount + (Math.random() - 0.5) * 0.5;
+      }
+
+      return {
+        id: Date.now() + i,
+        x,
+        y,
+        tool: selectedTool,
+        angle,
+        speed: selectedTool === 'paintball' ? Math.random() * 3 + 1 : Math.random() * 5 + 2,
+        life: 1,
+        color: selectedTool === 'paintball' ? getRandomPaintColor() : undefined,
+        size: selectedTool === 'paintball' ? Math.random() * 8 + 4 : undefined,
+      };
+    });
 
     setParticles(prev => [...prev, ...newParticles]);
 
