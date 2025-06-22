@@ -1,4 +1,4 @@
-export type Tool = 'hammer' | 'gun' | 'flamethrower' | 'laser' | 'bomb' | 'chainsaw';
+export type Tool = 'hammer' | 'gun' | 'flamethrower' | 'laser' | 'paintball' | 'chainsaw';
 
 export type GameMode = 'desktop-destroyer' | 'pest-control';
 
@@ -8,6 +8,7 @@ export interface DamageEffect {
   y: number;
   tool: Tool;
   timestamp: number;
+  color?: string; // Add color property for paintball effects
 }
 
 export interface Particle {
@@ -18,6 +19,8 @@ export interface Particle {
   angle: number;
   speed: number;
   life: number;
+  color?: string; // Add color property for paintball particles
+  size?: number; // Add size property for varied particle sizes
 }
 
 export interface DesktopWindow {

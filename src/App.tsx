@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Hammer, Zap, Flame, Bomb, RotateCcw, Target, Fan } from 'lucide-react';
+import { Hammer, Zap, Flame, Paintbrush, RotateCcw, Target, Fan } from 'lucide-react';
 import DesktopEnvironment from './components/DesktopEnvironment';
 import ToolSidebar from './components/ToolSidebar';
 import ParticleSystem from './components/ParticleSystem';
@@ -28,9 +28,19 @@ function App() {
     { id: 'gun', icon: Target, name: 'Gun', color: 'text-red-400', keyBinding: '2' },
     { id: 'flamethrower', icon: Flame, name: 'flamethrower', color: 'text-orange-400', keyBinding: '3' },
     { id: 'laser', icon: Zap, name: 'Laser', color: 'text-blue-400', keyBinding: '4' },
-    { id: 'bomb', icon: Bomb, name: 'Bomb', color: 'text-purple-400', keyBinding: '5' },
+    { id: 'paintball', icon: Paintbrush, name: 'Paintball', color: 'text-pink-400', keyBinding: '5' },
     { id: 'chainsaw', icon: Fan, name: 'Chainsaw', color: 'text-green-400', keyBinding: '6' },
   ];
+
+  // Generate random paint colors
+  const getRandomPaintColor = () => {
+    const colors = [
+      '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
+      '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9',
+      '#F8C471', '#82E0AA', '#F1948A', '#85C1E9', '#D7BDE2'
+    ];
+    return colors[Math.floor(Math.random() * colors.length)];
+  };
 
   // Keyboard weapon switching
   useEffect(() => {
@@ -40,7 +50,7 @@ function App() {
         '2': 'gun',
         '3': 'flamethrower',
         '4': 'laser',
-        '5': 'bomb',
+        '5': 'paintball',
         '6': 'chainsaw',
       };
 
@@ -81,7 +91,7 @@ function App() {
         return { x: x - 30, y: y - 30, width: 60, height: 60 };
       case 'laser':
         return { x: x - 25, y: y - 5, width: 50, height: 10 };
-      case 'bomb':
+      case 'paintball':
         return { x: x - 40, y: y - 40, width: 80, height: 80 };
       case 'chainsaw':
         return { x: x - 25, y: y - 25, width: 50, height: 50 };
@@ -121,27 +131,31 @@ function App() {
       }
     }
 
-    // Create damage effect
+    // Create damage effect with color for paintball
+    const paintColor = selectedTool === 'paintball' ? getRandomPaintColor() : undefined;
     const newDamage: DamageEffect = {
       id: Date.now() + Math.random(),
       x,
       y,
       tool: selectedTool,
       timestamp: Date.now(),
+      color: paintColor,
     };
 
     setDamageEffects(prev => [...prev, newDamage]);
 
     // Create particles based on tool
-    const particleCount = selectedTool === 'bomb' ? 20 : selectedTool === 'flamethrower' ? 15 : 8;
+    const particleCount = selectedTool === 'paintball' ? 25 : selectedTool === 'flamethrower' ? 15 : 8;
     const newParticles = Array.from({ length: particleCount }, (_, i) => ({
       id: Date.now() + i,
       x,
       y,
       tool: selectedTool,
-      angle: (Math.PI * 2 * i) / particleCount,
+      angle: (Math.PI * 2 * i) / particleCount + (Math.random() - 0.5) * 0.5, // Add some randomness
       speed: Math.random() * 5 + 2,
       life: 1,
+      color: selectedTool === 'paintball' ? getRandomPaintColor() : undefined,
+      size: selectedTool === 'paintball' ? Math.random() * 8 + 4 : undefined,
     }));
 
     setParticles(prev => [...prev, ...newParticles]);
@@ -149,7 +163,7 @@ function App() {
     // Remove particles after animation
     setTimeout(() => {
       setParticles(prev => prev.filter(p => !newParticles.includes(p)));
-    }, 2000);
+    }, selectedTool === 'paintball' ? 3000 : 2000);
   }, [selectedTool, soundEnabled, startSound, gameMode]);
 
   const handleDesktopMouseUp = useCallback(() => {
@@ -192,8 +206,8 @@ function App() {
         // Kill the bug
         killBug(hitBug.id);
 
-        // Create particles at bug location
-        const particleCount = 8;
+        // Create particles at bug location with color for paintball
+        const particleCount = selectedTool === 'paintball' ? 15 : 8;
         const newParticles = Array.from({ length: particleCount }, (_, i) => ({
           id: Date.now() + i,
           x: hitBug.x,
@@ -202,6 +216,8 @@ function App() {
           angle: (Math.PI * 2 * i) / particleCount,
           speed: Math.random() * 3 + 1,
           life: 1,
+          color: selectedTool === 'paintball' ? getRandomPaintColor() : undefined,
+          size: selectedTool === 'paintball' ? Math.random() * 6 + 3 : undefined,
         }));
 
         setParticles(prev => [...prev, ...newParticles]);
@@ -209,7 +225,7 @@ function App() {
         // Remove particles after animation
         setTimeout(() => {
           setParticles(prev => prev.filter(p => !newParticles.includes(p)));
-        }, 1500);
+        }, selectedTool === 'paintball' ? 2500 : 1500);
       }
       return;
     }
@@ -232,27 +248,31 @@ function App() {
       }
     }
 
-    // Create damage effect
+    // Create damage effect with color for paintball
+    const paintColor = selectedTool === 'paintball' ? getRandomPaintColor() : undefined;
     const newDamage: DamageEffect = {
       id: Date.now() + Math.random(),
       x,
       y,
       tool: selectedTool,
       timestamp: Date.now(),
+      color: paintColor,
     };
 
     setDamageEffects(prev => [...prev, newDamage]);
 
     // Create particles based on tool
-    const particleCount = selectedTool === 'bomb' ? 20 : selectedTool === 'flamethrower' ? 15 : 8;
+    const particleCount = selectedTool === 'paintball' ? 25 : selectedTool === 'flamethrower' ? 15 : 8;
     const newParticles = Array.from({ length: particleCount }, (_, i) => ({
       id: Date.now() + i,
       x,
       y,
       tool: selectedTool,
-      angle: (Math.PI * 2 * i) / particleCount,
+      angle: (Math.PI * 2 * i) / particleCount + (Math.random() - 0.5) * 0.5,
       speed: Math.random() * 5 + 2,
       life: 1,
+      color: selectedTool === 'paintball' ? getRandomPaintColor() : undefined,
+      size: selectedTool === 'paintball' ? Math.random() * 8 + 4 : undefined,
     }));
 
     setParticles(prev => [...prev, ...newParticles]);
@@ -260,7 +280,7 @@ function App() {
     // Remove particles after animation
     setTimeout(() => {
       setParticles(prev => prev.filter(p => !newParticles.includes(p)));
-    }, 2000);
+    }, selectedTool === 'paintball' ? 3000 : 2000);
   }, [selectedTool, soundEnabled, playSound, gameMode, gameStarted, bugs, killBug]);
 
   const handleBugClick = useCallback((bugId: number, event: React.MouseEvent) => {

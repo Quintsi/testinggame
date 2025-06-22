@@ -20,6 +20,7 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
     const [hammerImage, setHammerImage] = useState(1); // 1 or 2
     const [flamethrowerImage, setFlamethrowerImage] = useState(1);
     const [chainsawImage, setChainsawImage] = useState(1);
+    const [paintballImage, setPaintballImage] = useState(1);
 
     const desktopIcons = [
       { id: 'documents', icon: Folder, label: 'Documents', x: 50, y: 50 },
@@ -33,29 +34,29 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
     ];
 
     const handleClick = (event: React.MouseEvent) => {
-      // Switch laser gun image on each click when laser tool is selected
+      // Switch images on each click when respective tool is selected
       if (selectedTool === 'laser') {
         setLaserGunImage(prev => prev === 1 ? 2 : 1);
       }
       
-      // Switch gun image on each click when gun tool is selected
       if (selectedTool === 'gun') {
         setGunImage(prev => prev === 1 ? 2 : 1);
       }
       
-      // Switch hammer image on each click when hammer tool is selected
       if (selectedTool === 'hammer') {
         setHammerImage(prev => prev === 1 ? 2 : 1);
       }
 
-      // Switch flamethrower image on each click when flamethrower tool is selected
       if (selectedTool === 'flamethrower') {
         setFlamethrowerImage(prev => prev === 1 ? 2 : 1);
       }
 
-      // Switch chainsaw image on each click when chainsaw tool is selected
       if (selectedTool === 'chainsaw') {
         setChainsawImage(prev => prev === 1 ? 2 : 1);
+      }
+
+      if (selectedTool === 'paintball') {
+        setPaintballImage(prev => prev === 1 ? 2 : 1);
       }
       
       // Call the original onClick handler
@@ -65,29 +66,29 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
     };
 
     const handleMouseDown = (event: React.MouseEvent) => {
-      // Switch laser gun image on mouse down when laser tool is selected
+      // Switch images on mouse down when respective tool is selected
       if (selectedTool === 'laser') {
         setLaserGunImage(prev => prev === 1 ? 2 : 1);
       }
       
-      // Switch gun image on mouse down when gun tool is selected
       if (selectedTool === 'gun') {
         setGunImage(prev => prev === 1 ? 2 : 1);
       }
       
-      // Switch hammer image on mouse down when hammer tool is selected
       if (selectedTool === 'hammer') {
         setHammerImage(prev => prev === 1 ? 2 : 1);
       }
 
-      // Switch flamethrower image on mouse down when flamethrower tool is selected
       if (selectedTool === 'flamethrower') {
         setFlamethrowerImage(prev => prev === 1 ? 2 : 1);
       }
 
-      // Switch chainsaw image on mouse down when chainsaw tool is selected
       if (selectedTool === 'chainsaw') {
         setChainsawImage(prev => prev === 1 ? 2 : 1);
+      }
+
+      if (selectedTool === 'paintball') {
+        setPaintballImage(prev => prev === 1 ? 2 : 1);
       }
       
       // Call the original onMouseDown handler
@@ -97,7 +98,7 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
     };
 
     const getCursor = () => {
-      if (selectedTool === 'laser' || selectedTool === 'gun' || selectedTool === 'hammer' || selectedTool === 'flamethrower' || selectedTool === 'chainsaw') {
+      if (selectedTool === 'laser' || selectedTool === 'gun' || selectedTool === 'hammer' || selectedTool === 'flamethrower' || selectedTool === 'chainsaw' || selectedTool === 'paintball') {
         return 'cursor-none'; // Hide default cursor for weapons
       }
       return 'cursor-crosshair';
@@ -119,6 +120,10 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
       if (selectedTool === 'chainsaw') {
         return `/images/cs${chainsawImage}.png`; 
       }
+      if (selectedTool === 'paintball') {
+        // Use a paintball gun image - we'll create a simple paintball gun cursor
+        return null; // We'll render a custom paintball gun cursor
+      }
       return '';
     };
 
@@ -138,6 +143,9 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
       if (selectedTool === 'chainsaw') {
         return 'Chainsaw';
       }
+      if (selectedTool === 'paintball') {
+        return 'Paintball Gun';
+      }
       return '';
     };
 
@@ -152,10 +160,13 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
         return 'drop-shadow(0 0 8px rgba(139, 69, 19, 0.6))';
       }
       if (selectedTool === 'flamethrower') {
-        return 'drop-shadow(0 0 8px rgba(139, 69, 19, 0.6))';
+        return 'drop-shadow(0 0 8px rgba(255, 69, 0, 0.6))';
       }
       if (selectedTool === 'chainsaw') {
-        return 'drop-shadow(0 0 8px rgba(139, 69, 19, 0.6))';
+        return 'drop-shadow(0 0 8px rgba(34, 197, 94, 0.6))';
+      }
+      if (selectedTool === 'paintball') {
+        return 'drop-shadow(0 0 8px rgba(236, 72, 153, 0.6))';
       }
       return '';
     };
@@ -178,7 +189,7 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
         case 'laser':
           hitbox = { width: 50, height: 10 };
           break;
-        case 'bomb':
+        case 'paintball':
           hitbox = { width: 80, height: 80 };
           break;
         case 'chainsaw':
@@ -201,6 +212,22 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
       };
     };
 
+    // Custom Paintball Gun Cursor Component
+    const PaintballGunCursor = () => (
+      <div className="relative">
+        <div className="w-16 h-16 flex items-center justify-center">
+          {/* Paintball gun body */}
+          <div className="relative">
+            <div className="w-12 h-3 bg-gradient-to-r from-gray-700 to-gray-900 rounded-full"></div>
+            <div className="absolute -top-1 left-8 w-6 h-5 bg-gradient-to-b from-pink-400 to-pink-600 rounded-lg"></div>
+            <div className="absolute -top-0.5 left-2 w-2 h-2 bg-pink-500 rounded-full animate-pulse"></div>
+            {/* Barrel */}
+            <div className="absolute -top-0.5 -right-2 w-4 h-2 bg-gray-800 rounded-r-full"></div>
+          </div>
+        </div>
+      </div>
+    );
+
     return (
       <div 
         ref={ref}
@@ -213,7 +240,7 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
         }}
       >
         {/* Custom Weapon Cursor */}
-        {(selectedTool === 'laser' || selectedTool === 'gun' || selectedTool === 'hammer' || selectedTool === 'flamethrower' || selectedTool === 'chainsaw') && (
+        {(selectedTool === 'laser' || selectedTool === 'gun' || selectedTool === 'hammer' || selectedTool === 'flamethrower' || selectedTool === 'chainsaw' || selectedTool === 'paintball') && (
           <div
             className="absolute pointer-events-none z-50"
             style={{
@@ -222,14 +249,20 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
               transform: 'translate(-50%, -50%)',
             }}
           >
-            <img
-              src={getCurrentWeaponImage()}
-              alt={getWeaponAltText()}
-              className="w-16 h-16 transition-all duration-150"
-              style={{
-                filter: getWeaponGlow(),
-              }}
-            />
+            {selectedTool === 'paintball' ? (
+              <div style={{ filter: getWeaponGlow() }}>
+                <PaintballGunCursor />
+              </div>
+            ) : (
+              <img
+                src={getCurrentWeaponImage()}
+                alt={getWeaponAltText()}
+                className="w-16 h-16 transition-all duration-150"
+                style={{
+                  filter: getWeaponGlow(),
+                }}
+              />
+            )}
           </div>
         )}
 

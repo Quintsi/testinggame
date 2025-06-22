@@ -8,7 +8,7 @@ export const useSoundEffects = (volume: number = 0.5) => {
     gun: new Audio('public/asset/soundeffect/gun.mp3'),
     flamethrower: new Audio('public/asset/soundeffect/flamethrower.mp3'),
     laser: new Audio('public/asset/soundeffect/laser.mp3'),
-    bomb: new Audio('public/asset/soundeffect/bomb.mp3'),
+    paintball: new Audio('public/asset/soundeffect/gun.mp3'), // Reuse gun sound for paintball
     chainsaw: new Audio('public/asset/soundeffect/chainsaw.wav'),
   }), []);
 

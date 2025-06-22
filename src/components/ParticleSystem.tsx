@@ -24,16 +24,17 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({ particles }) => {
         prev.map(particle => ({
           ...particle,
           offsetX: particle.offsetX + Math.cos(particle.angle) * particle.speed,
-          offsetY: particle.offsetY + Math.sin(particle.angle) * particle.speed + 2, // gravity
-          life: Math.max(0, particle.life - 0.02),
+          offsetY: particle.offsetY + Math.sin(particle.angle) * particle.speed + (particle.tool === 'paintball' ? 1 : 2), // Less gravity for paintball
+          life: Math.max(0, particle.life - (particle.tool === 'paintball' ? 0.015 : 0.02)), // Slower fade for paintball
         }))
       );
     }, 16);
 
+    const timeout = particle => particle.tool === 'paintball' ? 3000 : 2000;
     setTimeout(() => {
       clearInterval(animationInterval);
       setAnimatedParticles([]);
-    }, 2000);
+    }, timeout(particles[0]));
 
     return () => clearInterval(animationInterval);
   }, [particles]);
@@ -88,20 +89,27 @@ const ParticleSystem: React.FC<ParticleSystemProps> = ({ particles }) => {
           boxShadow: '0 0 10px #00BFFF',
         };
       
-      case 'bomb':
+      case 'paintball':
+        const size = particle.size || 6;
         return {
           ...baseStyle,
-          width: 10,
-          height: 10,
-          background: `radial-gradient(circle, #FF4500 0%, #FF8C00 50%, #FFD700 100%)`,
-          borderRadius: '50%',
+          width: size,
+          height: size,
+          background: particle.color || '#FF6B6B',
+          borderRadius: '47% 53% 42% 58% / 45% 48% 52% 55%', // Distorted flower shape
+          transform: `rotate(${Math.random() * 360}deg)`,
+          filter: 'blur(0.3px)',
+          boxShadow: `0 0 ${size/2}px ${particle.color || '#FF6B6B'}66`,
         };
 
       case 'chainsaw':
         return {
           ...baseStyle,
-          // FIXME: 
-        }
+          width: 5,
+          height: 5,
+          background: '#8B4513',
+          borderRadius: '50%',
+        };
       
       default:
         return baseStyle;

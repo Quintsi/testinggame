@@ -56,14 +56,26 @@ const DamageOverlay: React.FC<DamageOverlayProps> = ({ effects }) => {
           transform: `rotate(${Math.random() * 360}deg)`,
         };
       
-      case 'bomb':
+      case 'paintball':
         return {
           ...baseStyle,
-          width: 120,
-          height: 120,
-          background: 'radial-gradient(circle, rgba(255,69,0,0.9) 0%, rgba(255,140,0,0.7) 20%, rgba(255,215,0,0.5) 40%, rgba(0,0,0,0.6) 60%, transparent 80%)',
+          width: 100,
+          height: 100,
+          background: `radial-gradient(circle, ${effect.color || '#FF6B6B'}CC 0%, ${effect.color || '#FF6B6B'}99 30%, ${effect.color || '#FF6B6B'}66 60%, transparent 80%)`,
+          borderRadius: '47% 53% 42% 58% / 45% 48% 52% 55%', // Distorted flower shape
+          animation: 'paintSplash 0.8s ease-out',
+          transform: `rotate(${Math.random() * 360}deg)`,
+          filter: 'blur(0.5px)',
+        };
+
+      case 'chainsaw':
+        return {
+          ...baseStyle,
+          width: 60,
+          height: 60,
+          background: 'radial-gradient(circle, rgba(139,69,19,0.9) 0%, rgba(101,67,33,0.7) 30%, rgba(0,0,0,0.6) 60%, transparent 80%)',
           borderRadius: '50%',
-          animation: 'explosion 1s ease-out',
+          animation: 'sawDamage 0.3s ease-out',
         };
       
       default:
@@ -80,10 +92,16 @@ const DamageOverlay: React.FC<DamageOverlayProps> = ({ effects }) => {
             100% { opacity: 1; transform: scale(1.1); }
           }
           
-          @keyframes explosion {
+          @keyframes paintSplash {
+            0% { opacity: 1; transform: scale(0) rotate(0deg); }
+            50% { opacity: 0.9; transform: scale(1.3) rotate(180deg); }
+            100% { opacity: 0.8; transform: scale(1) rotate(360deg); }
+          }
+
+          @keyframes sawDamage {
             0% { opacity: 1; transform: scale(0); }
             50% { opacity: 0.9; transform: scale(1.2); }
-            100% { opacity: 0.6; transform: scale(1); }
+            100% { opacity: 0.7; transform: scale(1); }
           }
         `}
       </style>
