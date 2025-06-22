@@ -10,17 +10,29 @@ export const usePestControl = () => {
   const [timeLeft, setTimeLeft] = useState(30);
 
   const createBug = useCallback(() => {
-    // Get screen dimensions (accounting for sidebar and margins)
-    const screenWidth = window.innerWidth - 200; // Account for sidebar
-    const screenHeight = window.innerHeight - 100; // Account for taskbar and margins
+    // Use full screen dimensions when game is active (no UI elements to avoid)
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+    
+    // During active gameplay, use full screen with minimal margins
+    // When UI is visible, account for sidebar and other elements
+    const isGameActive = gameStarted && !gameEnded;
+    
+    const marginLeft = isGameActive ? 20 : 200; // Minimal margin during gameplay
+    const marginRight = isGameActive ? 20 : 50;
+    const marginTop = isGameActive ? 20 : 100;
+    const marginBottom = isGameActive ? 60 : 100; // Account for taskbar
+    
+    const availableWidth = screenWidth - marginLeft - marginRight;
+    const availableHeight = screenHeight - marginTop - marginBottom;
     
     return {
       id: Date.now() + Math.random(),
-      x: Math.random() * (screenWidth - 100) + 150, // Avoid sidebar area
-      y: Math.random() * (screenHeight - 100) + 50, // Avoid top/bottom margins
+      x: Math.random() * availableWidth + marginLeft,
+      y: Math.random() * availableHeight + marginTop,
       timestamp: Date.now(),
     };
-  }, []);
+  }, [gameStarted, gameEnded]);
 
   const startGame = useCallback(() => {
     setGameStarted(true);

@@ -84,6 +84,9 @@ function App() {
 
   const toggleSound = () => setSoundEnabled(prev => !prev);
 
+  // Determine if we should hide UI elements (during active pest control gameplay)
+  const shouldHideUI = gameMode === 'pest-control' && gameStarted && !gameEnded;
+
   useEffect(() => {
     // Clean up old damage effects periodically
     const cleanup = setInterval(() => {
@@ -96,20 +99,24 @@ function App() {
 
   return (
     <div className="h-screen w-screen bg-gray-900 overflow-hidden relative">
-      {/* Game Mode Selector */}
-      <GameModeSelector currentMode={gameMode} onModeChange={handleModeChange} />
+      {/* Game Mode Selector - Hide during active pest control */}
+      {!shouldHideUI && (
+        <GameModeSelector currentMode={gameMode} onModeChange={handleModeChange} />
+      )}
 
-      {/* Tool Sidebar */}
-      <ToolSidebar
-        tools={tools}
-        selectedTool={selectedTool}
-        onToolSelect={setSelectedTool}
-        onReset={resetDesktop}
-        soundEnabled={soundEnabled}
-        onSoundToggle={toggleSound}
-        volume={volume}
-        onVolumeChange={setVolume}
-      />
+      {/* Tool Sidebar - Hide during active pest control */}
+      {!shouldHideUI && (
+        <ToolSidebar
+          tools={tools}
+          selectedTool={selectedTool}
+          onToolSelect={setSelectedTool}
+          onReset={resetDesktop}
+          soundEnabled={soundEnabled}
+          onSoundToggle={toggleSound}
+          volume={volume}
+          onVolumeChange={setVolume}
+        />
+      )}
 
       {/* Desktop Environment */}
       <div className="flex-1 relative">
@@ -144,13 +151,15 @@ function App() {
         <ParticleSystem particles={particles} />
       </div>
 
-      {/* Instructions */}
-      <InstructionText
-        gameMode={gameMode}
-        gameStarted={gameStarted}
-        score={score}
-        soundEnabled={soundEnabled}
-      />
+      {/* Instructions - Hide during active pest control */}
+      {!shouldHideUI && (
+        <InstructionText
+          gameMode={gameMode}
+          gameStarted={gameStarted}
+          score={score}
+          soundEnabled={soundEnabled}
+        />
+      )}
     </div>
   );
 }

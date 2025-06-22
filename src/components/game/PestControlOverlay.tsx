@@ -26,10 +26,10 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
 }) => {
   return (
     <>
-      {/* Timer Display - Top Left */}
+      {/* Timer Display - Top Left (only during active gameplay) */}
       {gameStarted && !gameEnded && (
         <div className="absolute top-4 left-4 z-50">
-          <div className="bg-gray-800/90 backdrop-blur-sm rounded-xl p-4 shadow-2xl border border-gray-700">
+          <div className="bg-gray-800/95 backdrop-blur-sm rounded-xl p-4 shadow-2xl border border-gray-700">
             <div className="text-center">
               <div className="text-2xl font-bold text-white mb-1">
                 {timeLeft}
@@ -115,7 +115,7 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
         </div>
       )}
 
-      {/* Bugs */}
+      {/* Bugs - Now with full screen spawning capability */}
       {gameStarted && !gameEnded && bugs.map((bug) => (
         <div
           key={bug.id}
@@ -139,9 +139,6 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
             <div className="absolute -right-1 top-1/2 w-2 h-0.5 bg-amber-900 transform rotate-45"></div>
             <div className="absolute -left-1 bottom-1/3 w-2 h-0.5 bg-amber-900 transform rotate-45"></div>
             <div className="absolute -right-1 bottom-1/3 w-2 h-0.5 bg-amber-900 transform -rotate-45"></div>
-            
-            {/* Bug hurt box visualization (for debugging - can be removed) */}
-            <div className="absolute -inset-2 border border-red-500 border-dashed rounded-full opacity-30"></div>
           </div>
         </div>
       ))}
