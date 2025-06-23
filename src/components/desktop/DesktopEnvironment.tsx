@@ -12,10 +12,11 @@ interface DesktopEnvironmentProps {
   selectedTool: Tool;
   gameMode: GameMode;
   mousePosition: { x: number; y: number };
+  bugs?: { id: number; x: number; y: number }[];
 }
 
 const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
-  ({ onClick, onMouseDown, onMouseUp, damageEffects, chainsawPaths, selectedTool, gameMode, mousePosition }, ref) => {
+  ({ onClick, onMouseDown, onMouseUp, damageEffects, chainsawPaths, selectedTool, gameMode, mousePosition, bugs }, ref) => {
     const [laserGunImage, setLaserGunImage] = useState(1); // 1 or 2
     const [gunImage, setGunImage] = useState(1); // 1 or 2
     const [hammerImage, setHammerImage] = useState(1); // 1 or 2
@@ -100,6 +101,9 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
     };
 
     const getCursor = () => {
+      if (gameMode === 'pest-control') {
+        return 'cursor-none'; // Hide cursor completely in pest control mode
+      }
       if (selectedTool === 'laser' || selectedTool === 'gun' || selectedTool === 'hammer' || selectedTool === 'flamethrower' || selectedTool === 'chainsaw' || selectedTool === 'paintball') {
         return 'cursor-none'; // Hide default cursor for weapons
       }
@@ -179,31 +183,36 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
       let hitbox;
       switch (selectedTool) {
         case 'hammer':
-          hitbox = { width: 40, height: 40 };
+          hitbox = { width: 100, height: 100 };
           break;
         case 'gun':
-          hitbox = { width: 30, height: 30 };
-          break;
-        case 'flamethrower':
-          hitbox = { width: 60, height: 60 };
-          break;
-        case 'laser':
-          hitbox = { width: 50, height: 10 };
-          break;
-        case 'paintball':
           hitbox = { width: 80, height: 80 };
           break;
+        case 'flamethrower':
+          hitbox = { width: 140, height: 140 };
+          break;
+        case 'laser':
+          hitbox = { width: 120, height: 32 };
+          break;
+        case 'paintball':
+          hitbox = { width: 180, height: 180 };
+          break;
         case 'chainsaw':
-          hitbox = { width: 50, height: 50 };
+          hitbox = { width: 120, height: 120 };
           break;
         default:
-          hitbox = { width: 30, height: 30 };
+          hitbox = { width: 80, height: 80 };
       }
+
+      // Position hitbox to match the weapon image position
+      const weaponOffsetX = 10; // Same as weapon image offset
+      const weaponOffsetY = -25; // Same as weapon image offset
+      const weaponSize = 64; // w-16 = 64px
 
       return {
         position: 'absolute' as const,
-        left: mousePosition.x - hitbox.width / 2,
-        top: mousePosition.y - hitbox.height / 2,
+        left: mousePosition.x + weaponOffsetX + (weaponSize / 2) - (hitbox.width / 2),
+        top: mousePosition.y + weaponOffsetY + (weaponSize / 2) - (hitbox.height / 2),
         width: hitbox.width,
         height: hitbox.height,
         border: '2px dashed rgba(255, 0, 0, 0.5)',
@@ -250,7 +259,55 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
 
         {/* Weapon Hitbox Visualization (for debugging - can be removed) */}
         {gameMode === 'pest-control' && (
-          <div style={getWeaponHitboxStyle()} />
+          <>
+            <div style={getWeaponHitboxStyle()} />
+            {/* Weapon center point indicator */}
+            <div
+              style={{
+                position: 'absolute',
+                left: mousePosition.x + 10 + 32 - 2, // weaponOffsetX + weaponSize/2 - 2
+                top: mousePosition.y - 25 + 32 - 2, // weaponOffsetY + weaponSize/2 - 2
+                width: 4,
+                height: 4,
+                backgroundColor: 'rgba(255, 255, 0, 0.8)',
+                borderRadius: '50%',
+                pointerEvents: 'none',
+                zIndex: 46,
+              }}
+            />
+            {/* Bug hitbox visualization for debugging */}
+            {bugs?.map((bug) => (
+              <div key={`hitbox-${bug.id}`}>
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: bug.x - 20,
+                    top: bug.y - 20,
+                    width: 40,
+                    height: 40,
+                    border: '2px dashed rgba(0, 255, 0, 0.5)',
+                    borderRadius: '50%',
+                    pointerEvents: 'none',
+                    zIndex: 44,
+                  }}
+                />
+                {/* Bug center point indicator */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: bug.x - 2,
+                    top: bug.y - 2,
+                    width: 4,
+                    height: 4,
+                    backgroundColor: 'rgba(0, 255, 255, 0.8)',
+                    borderRadius: '50%',
+                    pointerEvents: 'none',
+                    zIndex: 47,
+                  }}
+                />
+              </div>
+            ))}
+          </>
         )}
 
         {/* Sample Windows - Only show in desktop destroyer mode */}

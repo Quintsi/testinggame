@@ -130,6 +130,7 @@ function App() {
           selectedTool={selectedTool}
           gameMode={gameMode}
           mousePosition={mousePosition}
+          bugs={gameMode === 'pest-control' ? bugs : undefined}
         />
         
         {/* Pest Control Overlay */}

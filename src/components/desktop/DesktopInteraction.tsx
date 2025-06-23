@@ -99,12 +99,31 @@ export const useDesktopInteraction = (
       const x = event.clientX - rect.left;
       const y = event.clientY - rect.top;
       const weaponHitbox = getWeaponHitbox(x, y, selectedTool);
-      const hitBug = bugs.find(bug => checkCollision(weaponHitbox, bug.x, bug.y));
+      
+      // First try standard collision detection
+      let hitBug = bugs.find(bug => checkCollision(weaponHitbox, bug.x, bug.y));
+      
+      // If no collision found, try a very generous distance-based fallback
+      if (!hitBug) {
+        hitBug = bugs.find(bug => {
+          const distance = Math.sqrt(
+            Math.pow(x - bug.x, 2) + Math.pow(y - bug.y, 2)
+          );
+          // Allow hits within 35 pixels (very generous for 1px accuracy)
+          return distance <= 35;
+        });
+      }
 
       if (hitBug) {
         if (soundEnabled) playSound(selectedTool);
         killBug(hitBug.id);
         createBugParticles(hitBug.x, hitBug.y, selectedTool, getRandomPaintColor, setParticles);
+        
+        // Add visual feedback for successful hit
+        console.log(`Hit bug ${hitBug.id} at (${hitBug.x}, ${hitBug.y}) with ${selectedTool}`);
+      } else {
+        // Add visual feedback for missed shots (optional debugging)
+        console.log(`Missed shot at (${x}, ${y}) with ${selectedTool}`);
       }
       return;
     }

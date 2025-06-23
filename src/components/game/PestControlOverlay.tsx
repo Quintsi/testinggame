@@ -24,6 +24,26 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
   selectedTool,
   mousePosition
 }) => {
+
+  const getBugImage = (tool: Tool) => {
+    switch (tool) {
+      case 'hammer':
+        return '/asset/enermyImage/sn-y1.png';
+      case 'gun':
+        return '/asset/enermyImage/f-y1.png';
+      case 'flamethrower':
+        return '/asset/enermyImage/s-y1.png';
+      case 'laser':
+        return '/asset/enermyImage/c-y1.png';
+      case 'paintball':
+        return '/asset/enermyImage/w-x2.png';
+      case 'chainsaw':
+        return '/asset/enermyImage/t-y1.png';
+      default:
+        return '/asset/enermyImage/sn-y1.png'; // Default to snail
+    }
+  };
+
   return (
     <>
       {/* Timer Display - Top Left (only during active gameplay) */}
@@ -119,27 +139,23 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
       {gameStarted && !gameEnded && bugs.map((bug) => (
         <div
           key={bug.id}
-          className="absolute cursor-pointer z-30 animate-pulse"
+          className="absolute z-30 animate-pulse cursor-none"
           style={{
-            left: bug.x - 15,
-            top: bug.y - 15,
+            left: bug.x - 20,
+            top: bug.y - 20,
+            width: '40px',
+            height: '40px',
           }}
           onClick={(e) => {
             e.stopPropagation();
             onBugClick(bug.id, e);
           }}
         >
-          <div className="w-8 h-8 bg-amber-800 rounded-full border-2 border-amber-900 shadow-lg hover:scale-110 transition-transform duration-150 relative">
-            {/* Bug details */}
-            <div className="w-full h-full rounded-full bg-gradient-to-br from-amber-700 to-amber-900 flex items-center justify-center">
-              <div className="w-2 h-2 bg-black rounded-full"></div>
-            </div>
-            {/* Bug legs */}
-            <div className="absolute -left-1 top-1/2 w-2 h-0.5 bg-amber-900 transform -rotate-45"></div>
-            <div className="absolute -right-1 top-1/2 w-2 h-0.5 bg-amber-900 transform rotate-45"></div>
-            <div className="absolute -left-1 bottom-1/3 w-2 h-0.5 bg-amber-900 transform rotate-45"></div>
-            <div className="absolute -right-1 bottom-1/3 w-2 h-0.5 bg-amber-900 transform -rotate-45"></div>
-          </div>
+          <img 
+            src={getBugImage(selectedTool)} 
+            alt="pest" 
+            className="w-full h-full object-contain hover:scale-110 transition-transform duration-150"
+          />
         </div>
       ))}
     </>

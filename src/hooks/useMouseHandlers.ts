@@ -68,26 +68,55 @@ export const useMouseHandlers = (
   }, [isMouseDown, selectedTool, gameMode, setMousePosition, setChainsawPath, setChainsawPaths, desktopRef]);
 
   const getWeaponHitbox = useCallback((x: number, y: number, tool: Tool) => {
+    // Position hitbox to match the weapon image position
+    const weaponOffsetX = 10; // Same as weapon image offset
+    const weaponOffsetY = -25; // Same as weapon image offset
+    const weaponSize = 64; // w-16 = 64px
+    
+    // Calculate the center of the weapon image
+    const weaponCenterX = x + weaponOffsetX + (weaponSize / 2);
+    const weaponCenterY = y + weaponOffsetY + (weaponSize / 2);
+    
     switch (tool) {
-      case 'hammer': return { x: x - 20, y: y - 20, width: 40, height: 40 };
-      case 'gun': return { x: x - 15, y: y - 15, width: 30, height: 30 };
-      case 'flamethrower': return { x: x - 30, y: y - 30, width: 60, height: 60 };
-      case 'laser': return { x: x - 25, y: y - 5, width: 50, height: 10 };
-      case 'paintball': return { x: x - 40, y: y - 40, width: 80, height: 80 };
-      case 'chainsaw': return { x: x - 25, y: y - 25, width: 50, height: 50 };
-      default: return { x: x - 15, y: y - 15, width: 30, height: 30 };
+      case 'hammer': return { x: weaponCenterX - 50, y: weaponCenterY - 50, width: 100, height: 100 };
+      case 'gun': return { x: weaponCenterX - 40, y: weaponCenterY - 40, width: 80, height: 80 };
+      case 'flamethrower': return { x: weaponCenterX - 70, y: weaponCenterY - 70, width: 140, height: 140 };
+      case 'laser': return { x: weaponCenterX - 60, y: weaponCenterY - 16, width: 120, height: 32 };
+      case 'paintball': return { x: weaponCenterX - 90, y: weaponCenterY - 90, width: 180, height: 180 };
+      case 'chainsaw': return { x: weaponCenterX - 60, y: weaponCenterY - 60, width: 120, height: 120 };
+      default: return { x: weaponCenterX - 40, y: weaponCenterY - 40, width: 80, height: 80 };
     }
   }, []);
 
   const checkCollision = useCallback((weaponHitbox: any, bugX: number, bugY: number) => {
-    const bugHitbox = { x: bugX - 15, y: bugY - 15, width: 30, height: 30 };
+    // Increase bug hitbox size for more forgiving collision detection
+    const bugHitbox = { x: bugX - 20, y: bugY - 20, width: 40, height: 40 };
     
-    return (
+    // Standard AABB collision detection
+    const collision = (
       weaponHitbox.x < bugHitbox.x + bugHitbox.width &&
       weaponHitbox.x + weaponHitbox.width > bugHitbox.x &&
       weaponHitbox.y < bugHitbox.y + bugHitbox.height &&
       weaponHitbox.y + weaponHitbox.height > bugHitbox.y
     );
+
+    // If standard collision fails, try a more generous distance-based check
+    if (!collision) {
+      const weaponCenterX = weaponHitbox.x + weaponHitbox.width / 2;
+      const weaponCenterY = weaponHitbox.y + weaponHitbox.height / 2;
+      const bugCenterX = bugX;
+      const bugCenterY = bugY;
+      
+      const distance = Math.sqrt(
+        Math.pow(weaponCenterX - bugCenterX, 2) + 
+        Math.pow(weaponCenterY - bugCenterY, 2)
+      );
+      
+      // Allow collision if centers are within 25 pixels (generous tolerance)
+      return distance <= 25;
+    }
+    
+    return collision;
   }, []);
 
   return {
