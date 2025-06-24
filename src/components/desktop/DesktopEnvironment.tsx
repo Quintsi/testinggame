@@ -240,7 +240,7 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
               left: mousePosition.x + 10,
               top: mousePosition.y - 25,
               transform: 'translate(0, -50%)',
-              zIndex: gameMode === 'desktop-destroyer' ? 1000 : undefined,
+              zIndex: gameMode === 'desktop-destroyer' ? 1000 : 55,
             }}
           >
               <img
