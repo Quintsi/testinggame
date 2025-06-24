@@ -32,19 +32,19 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
   const getBugImage = (pestType: PestType) => {
     switch (pestType) {
       case 'termite':
-        return '/asset/enermyImage/t-y1.png';
+        return '/asset/enermyImage/termite.png';
       case 'spider':
-        return '/asset/enermyImage/s-y1.png';
+        return '/asset/enermyImage/spider.png';
       case 'fly':
-        return '/asset/enermyImage/f-y1.png';
+        return '/asset/enermyImage/fly.png';
       case 'cockroach':
-        return '/asset/enermyImage/c-y1.png';
+        return '/asset/enermyImage/cockroach.png';
       case 'snail':
-        return '/asset/enermyImage/sn-y1.png';
+        return '/asset/enermyImage/snail.png';
       case 'caterpillar':
-        return '/asset/enermyImage/w-y1.png';
+        return '/asset/enermyImage/caterpilla.png';
       default:
-        return '/asset/enermyImage/sn-y1.png';
+        return '/asset/enermyImage/snail.png';
     }
   };
 
