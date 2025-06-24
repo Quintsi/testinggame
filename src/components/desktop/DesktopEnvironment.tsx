@@ -235,11 +235,12 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
         {/* Custom Weapon Cursor */}
         {(selectedTool === 'laser' || selectedTool === 'gun' || selectedTool === 'hammer' || selectedTool === 'flamethrower' || selectedTool === 'chainsaw' || selectedTool === 'paintball') && (
           <div
-            className="absolute pointer-events-none z-55"
+            className="absolute pointer-events-none"
             style={{
               left: mousePosition.x + 10,
               top: mousePosition.y - 25,
               transform: 'translate(0, -50%)',
+              zIndex: gameMode === 'desktop-destroyer' ? 1000 : undefined,
             }}
           >
               <img
