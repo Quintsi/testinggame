@@ -1,5 +1,17 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Bug } from '../types/game';
+import { Bug, PestType, Tool } from '../types/game';
+
+// Define pest-weapon relationships
+const PEST_WEAPON_MAP: Record<PestType, Tool> = {
+  termite: 'chainsaw',
+  spider: 'flamethrower',
+  fly: 'gun',
+  cockroach: 'laser',
+  snail: 'hammer',
+  caterpillar: 'paintball',
+};
+
+const PEST_TYPES: PestType[] = ['termite', 'spider', 'fly', 'cockroach', 'snail', 'caterpillar'];
 
 export const usePestControl = () => {
   const [bugs, setBugs] = useState<Bug[]>([]);
@@ -8,6 +20,11 @@ export const usePestControl = () => {
   const [gameEnded, setGameEnded] = useState(false);
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(30);
+  const [missedAttempts, setMissedAttempts] = useState(0);
+
+  const getRandomPestType = useCallback((): PestType => {
+    return PEST_TYPES[Math.floor(Math.random() * PEST_TYPES.length)];
+  }, []);
 
   const createBug = useCallback(() => {
     // Use full screen dimensions when game is active (no UI elements to avoid)
@@ -26,19 +43,24 @@ export const usePestControl = () => {
     const availableWidth = screenWidth - marginLeft - marginRight;
     const availableHeight = screenHeight - marginTop - marginBottom;
     
+    const pestType = getRandomPestType();
+    
     return {
       id: Date.now() + Math.random(),
       x: Math.random() * availableWidth + marginLeft,
       y: Math.random() * availableHeight + marginTop,
       timestamp: Date.now(),
+      type: pestType,
+      requiredWeapon: PEST_WEAPON_MAP[pestType],
     };
-  }, [gameStarted, gameEnded]);
+  }, [gameStarted, gameEnded, getRandomPestType]);
 
   const startGame = useCallback(() => {
     setGameStarted(true);
     setGameEnded(false);
     setScore(0);
     setTimeLeft(30);
+    setMissedAttempts(0);
     
     // Create the first visible bug and pre-load the hidden one
     const firstBug = createBug();
@@ -55,17 +77,41 @@ export const usePestControl = () => {
     setHiddenBug(null);
   }, []);
 
+  const attemptKill = useCallback((bugId: number, weaponUsed: Tool) => {
+    const targetBug = bugs.find(bug => bug.id === bugId);
+    if (!targetBug) return false;
+
+    // Check if the correct weapon was used
+    if (weaponUsed === targetBug.requiredWeapon) {
+      // Successful kill
+      setBugs(prev => prev.filter(bug => bug.id !== bugId));
+      setScore(prev => prev + 1);
+      
+      // Only continue spawning if the game is still active
+      if (gameStarted && !gameEnded && hiddenBug) {
+        // Immediately show the pre-loaded hidden bug
+        setBugs([hiddenBug]);
+        
+        // Pre-load the next hidden bug for instant spawning
+        const nextHiddenBug = createBug();
+        setHiddenBug(nextHiddenBug);
+      }
+      return true;
+    } else {
+      // Wrong weapon used - count as missed attempt but don't remove bug
+      setMissedAttempts(prev => prev + 1);
+      return false;
+    }
+  }, [bugs, gameStarted, gameEnded, hiddenBug, createBug]);
+
   const killBug = useCallback((bugId: number) => {
-    // Remove the killed bug
+    // This is now just a wrapper that removes the bug without weapon checking
+    // Used for legacy compatibility - the real logic is in attemptKill
     setBugs(prev => prev.filter(bug => bug.id !== bugId));
     setScore(prev => prev + 1);
     
-    // Only continue spawning if the game is still active
     if (gameStarted && !gameEnded && hiddenBug) {
-      // Immediately show the pre-loaded hidden bug
       setBugs([hiddenBug]);
-      
-      // Pre-load the next hidden bug for instant spawning
       const nextHiddenBug = createBug();
       setHiddenBug(nextHiddenBug);
     }
@@ -78,6 +124,7 @@ export const usePestControl = () => {
     setHiddenBug(null);
     setScore(0);
     setTimeLeft(30);
+    setMissedAttempts(0);
   }, []);
 
   // Timer countdown effect
@@ -103,8 +150,11 @@ export const usePestControl = () => {
     gameEnded,
     score,
     timeLeft,
+    missedAttempts,
     startGame,
     killBug,
+    attemptKill,
     resetGame,
+    PEST_WEAPON_MAP,
   };
 };

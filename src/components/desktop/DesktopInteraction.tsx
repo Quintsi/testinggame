@@ -21,6 +21,7 @@ export const useDesktopInteraction = (
   setParticles: React.Dispatch<React.SetStateAction<any[]>>,
   setSelectedTool: (tool: Tool) => void,
   killBug: (id: number) => void,
+  attemptKill: (bugId: number, weaponUsed: Tool) => boolean,
   volume: number,
   soundEnabled: boolean
 ) => {
@@ -115,14 +116,21 @@ export const useDesktopInteraction = (
       }
 
       if (hitBug) {
-        if (soundEnabled) playSound(selectedTool);
-        killBug(hitBug.id);
-        createBugParticles(hitBug.x, hitBug.y, selectedTool, getRandomPaintColor, setParticles);
+        // Use the new strategic kill system
+        const killSuccessful = attemptKill(hitBug.id, selectedTool);
         
-        // Add visual feedback for successful hit
-        console.log(`Hit bug ${hitBug.id} at (${hitBug.x}, ${hitBug.y}) with ${selectedTool}`);
+        if (killSuccessful) {
+          // Successful kill with correct weapon
+          if (soundEnabled) playSound(selectedTool);
+          createBugParticles(hitBug.x, hitBug.y, selectedTool, getRandomPaintColor, setParticles);
+          console.log(`Successfully killed ${hitBug.type} with ${selectedTool}`);
+        } else {
+          // Wrong weapon used - play error sound or visual feedback
+          console.log(`Wrong weapon! ${hitBug.type} requires ${hitBug.requiredWeapon}, used ${selectedTool}`);
+          // Could add a "miss" sound effect here
+        }
       } else {
-        // Add visual feedback for missed shots (optional debugging)
+        // Complete miss - no bug hit
         console.log(`Missed shot at (${x}, ${y}) with ${selectedTool}`);
       }
       return;
@@ -130,7 +138,7 @@ export const useDesktopInteraction = (
 
     // Handle desktop destruction mode - only for pest control, no damage/particles on click
     if (gameMode !== 'desktop-destroyer') return;
-  }, [selectedTool, soundEnabled, playSound, gameMode, gameStarted, bugs, killBug, getWeaponHitbox, checkCollision, createBugParticles, getRandomPaintColor, setParticles]);
+  }, [selectedTool, soundEnabled, playSound, gameMode, gameStarted, bugs, attemptKill, getWeaponHitbox, checkCollision, createBugParticles, getRandomPaintColor, setParticles]);
 
   // Global mouse up handler to stop sounds when mouse is released outside desktop
   useEffect(() => {
@@ -147,4 +155,4 @@ export const useDesktopInteraction = (
     handleDesktopMouseUp,
     handleDesktopClick,
   };
-}; 
+};

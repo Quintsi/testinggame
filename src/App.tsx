@@ -29,6 +29,8 @@ function App() {
     gameEnded,
     score,
     timeLeft,
+    missedAttempts,
+    PEST_WEAPON_MAP,
     
     // Setters
     setSelectedTool,
@@ -46,6 +48,7 @@ function App() {
     handleModeChange,
     startGame,
     killBug,
+    attemptKill,
   } = useGameState();
 
   const {
@@ -69,6 +72,7 @@ function App() {
     setParticles,
     setSelectedTool,
     killBug,
+    attemptKill,
     volume,
     soundEnabled
   );
@@ -96,6 +100,31 @@ function App() {
 
     return () => clearInterval(cleanup);
   }, [setDamageEffects]);
+
+  // Add CSS to prevent text selection
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      * {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+      
+      input, textarea {
+        -webkit-user-select: text;
+        -moz-user-select: text;
+        -ms-user-select: text;
+        user-select: text;
+      }
+    `;
+    document.head.appendChild(style);
+
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
 
   return (
     <div className="h-screen w-screen bg-gray-900 overflow-hidden relative">
@@ -141,10 +170,12 @@ function App() {
             gameEnded={gameEnded}
             score={score}
             timeLeft={timeLeft}
+            missedAttempts={missedAttempts}
             onStartGame={startGame}
             onBugClick={() => {}} // Handled in desktop interaction
             selectedTool={selectedTool}
             mousePosition={mousePosition}
+            PEST_WEAPON_MAP={PEST_WEAPON_MAP}
           />
         )}
         

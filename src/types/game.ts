@@ -2,6 +2,8 @@ export type Tool = 'hammer' | 'gun' | 'flamethrower' | 'laser' | 'paintball' | '
 
 export type GameMode = 'desktop-destroyer' | 'pest-control';
 
+export type PestType = 'termite' | 'spider' | 'fly' | 'cockroach' | 'snail' | 'caterpillar';
+
 export interface DamageEffect {
   id: number;
   x: number;
@@ -45,4 +47,6 @@ export interface Bug {
   x: number;
   y: number;
   timestamp: number;
+  type: PestType; // Add pest type
+  requiredWeapon: Tool; // Add required weapon to kill this pest
 }
