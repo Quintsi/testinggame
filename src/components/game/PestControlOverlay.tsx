@@ -84,6 +84,19 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
     }
   };
 
+  // Define weapon order to match sidebar (hammer, gun, flamethrower, laser, paintball, chainsaw)
+  const getWeaponGuideOrder = () => {
+    const weaponOrder: Tool[] = ['hammer', 'gun', 'flamethrower', 'laser', 'paintball', 'chainsaw'];
+    
+    // Find which pest requires each weapon in the correct order
+    return weaponOrder.map(weapon => {
+      const pestType = Object.keys(PEST_WEAPON_MAP).find(
+        pest => PEST_WEAPON_MAP[pest as PestType] === weapon
+      ) as PestType;
+      return { pest: pestType, weapon };
+    });
+  };
+
   return (
     <>
       {/* Timer Display - Top Left (only during active gameplay) */}
@@ -116,9 +129,9 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
           <div className="bg-gray-800/95 backdrop-blur-sm rounded-xl p-3 shadow-2xl border border-gray-700">
             <div className="text-xs text-gray-300 mb-2 text-center font-semibold">PEST → WEAPON</div>
             <div className="space-y-1 text-xs">
-              {Object.entries(PEST_WEAPON_MAP).map(([pest, weapon]) => (
+              {getWeaponGuideOrder().map(({ pest, weapon }) => (
                 <div key={pest} className="flex justify-between items-center">
-                  <span className="text-gray-300 capitalize">{getPestName(pest as PestType)}:</span>
+                  <span className="text-gray-300 capitalize">{getPestName(pest)}:</span>
                   <span className={`font-semibold ml-2 ${getWeaponColor(weapon)}`}>
                     {getWeaponName(weapon)}
                   </span>
@@ -165,9 +178,9 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
             <div className="bg-gray-800/90 rounded-xl p-6 mb-8">
               <h3 className="text-lg font-semibold text-white mb-4">Pest → Weapon Guide</h3>
               <div className="grid grid-cols-2 gap-3 text-sm">
-                {Object.entries(PEST_WEAPON_MAP).map(([pest, weapon]) => (
+                {getWeaponGuideOrder().map(({ pest, weapon }) => (
                   <div key={pest} className="flex justify-between items-center bg-gray-700/50 rounded-lg p-2">
-                    <span className="text-gray-300 capitalize font-medium">{getPestName(pest as PestType)}</span>
+                    <span className="text-gray-300 capitalize font-medium">{getPestName(pest)}</span>
                     <span className={`font-semibold ${getWeaponColor(weapon)}`}>
                       {getWeaponName(weapon)}
                     </span>

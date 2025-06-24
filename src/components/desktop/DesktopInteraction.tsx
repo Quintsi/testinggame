@@ -23,7 +23,8 @@ export const useDesktopInteraction = (
   killBug: (id: number) => void,
   attemptKill: (bugId: number, weaponUsed: Tool) => boolean,
   volume: number,
-  soundEnabled: boolean
+  soundEnabled: boolean,
+  isWeaponMuted: (weapon: Tool) => boolean
 ) => {
   const desktopRef = useRef<HTMLDivElement>(null);
   const { createDamageEffect, getRandomPaintColor } = useDamageEffects();
@@ -53,7 +54,9 @@ export const useDesktopInteraction = (
     setIsMouseDown(true);
 
     if (selectedTool === 'chainsaw') setChainsawPath([{ x, y }]);
-    if (soundEnabled) {
+    
+    // Check if weapon is individually muted
+    if (soundEnabled && !isWeaponMuted(selectedTool)) {
       if (selectedTool === 'hammer') {
         playSound(selectedTool);
       } else if (selectedTool === 'chainsaw' || selectedTool === 'gun') {
@@ -62,22 +65,23 @@ export const useDesktopInteraction = (
         playSound(selectedTool);
       }
     }
+    
     if (selectedTool !== 'chainsaw') {
       createDamageEffect(x, y, selectedTool, { current: null }, setDamageEffects);
       createParticles(x, y, selectedTool, getRandomPaintColor, setParticles);
     }
-  }, [selectedTool, soundEnabled, startSound, playSound, gameMode, createDamageEffect, createParticles, getRandomPaintColor, setDamageEffects, setParticles, setIsMouseDown, setChainsawPath]);
+  }, [selectedTool, soundEnabled, isWeaponMuted, startSound, playSound, gameMode, createDamageEffect, createParticles, getRandomPaintColor, setDamageEffects, setParticles, setIsMouseDown, setChainsawPath]);
 
   const handleDesktopMouseUp = useCallback(() => {
     setIsMouseDown(false);
     if (selectedTool === 'chainsaw') {
       setChainsawPath([]);
-      if (soundEnabled) stopSound(selectedTool);
+      if (soundEnabled && !isWeaponMuted(selectedTool)) stopSound(selectedTool);
     }
-    if (selectedTool === 'gun' && soundEnabled) {
+    if (selectedTool === 'gun' && soundEnabled && !isWeaponMuted(selectedTool)) {
       stopSound(selectedTool);
     }
-  }, [selectedTool, soundEnabled, stopSound, setIsMouseDown, setChainsawPath]);
+  }, [selectedTool, soundEnabled, isWeaponMuted, stopSound, setIsMouseDown, setChainsawPath]);
 
   // Continuous firing effect for gun
   useEffect(() => {
@@ -121,7 +125,7 @@ export const useDesktopInteraction = (
         
         if (killSuccessful) {
           // Successful kill with correct weapon
-          if (soundEnabled) playSound(selectedTool);
+          if (soundEnabled && !isWeaponMuted(selectedTool)) playSound(selectedTool);
           createBugParticles(hitBug.x, hitBug.y, selectedTool, getRandomPaintColor, setParticles);
           console.log(`Successfully killed ${hitBug.type} with ${selectedTool}`);
         } else {
@@ -138,16 +142,18 @@ export const useDesktopInteraction = (
 
     // Handle desktop destruction mode - only for pest control, no damage/particles on click
     if (gameMode !== 'desktop-destroyer') return;
-  }, [selectedTool, soundEnabled, playSound, gameMode, gameStarted, bugs, attemptKill, getWeaponHitbox, checkCollision, createBugParticles, getRandomPaintColor, setParticles]);
+  }, [selectedTool, soundEnabled, isWeaponMuted, playSound, gameMode, gameStarted, bugs, attemptKill, getWeaponHitbox, checkCollision, createBugParticles, getRandomPaintColor, setParticles]);
 
   // Global mouse up handler to stop sounds when mouse is released outside desktop
   useEffect(() => {
     const handleGlobalMouseUp = () => {
-      if (soundEnabled && (selectedTool === 'chainsaw' || selectedTool === 'gun')) stopSound(selectedTool);
+      if (soundEnabled && !isWeaponMuted(selectedTool) && (selectedTool === 'chainsaw' || selectedTool === 'gun')) {
+        stopSound(selectedTool);
+      }
     };
     document.addEventListener('mouseup', handleGlobalMouseUp);
     return () => document.removeEventListener('mouseup', handleGlobalMouseUp);
-  }, [selectedTool, soundEnabled, stopSound]);
+  }, [selectedTool, soundEnabled, isWeaponMuted, stopSound]);
 
   return {
     desktopRef,

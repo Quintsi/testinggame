@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { RotateCcw, ChevronRight, ChevronLeft } from 'lucide-react';
+import { RotateCcw, ChevronRight, ChevronLeft, Volume2, VolumeX } from 'lucide-react';
 import { Tool } from '../../types/game';
 import SoundToggle from '../ui/SoundToggle';
 import VolumeSlider from '../ui/VolumeSlider';
@@ -13,6 +13,8 @@ interface ToolSidebarProps {
   onSoundToggle: () => void;
   volume: number;
   onVolumeChange: (volume: number) => void;
+  mutedWeapons: Set<Tool>;
+  onWeaponMuteToggle: (weapon: Tool) => void;
 }
 
 const ToolSidebar: React.FC<ToolSidebarProps> = ({
@@ -24,6 +26,8 @@ const ToolSidebar: React.FC<ToolSidebarProps> = ({
   onSoundToggle,
   volume,
   onVolumeChange,
+  mutedWeapons,
+  onWeaponMuteToggle,
 }) => {
   const [isOpen, setIsOpen] = useState(true);
 
@@ -47,34 +51,56 @@ const ToolSidebar: React.FC<ToolSidebarProps> = ({
           {tools.map((tool) => {
             const IconComponent = tool.icon;
             const isSelected = selectedTool === tool.id;
+            const isMuted = mutedWeapons.has(tool.id);
             
             return (
-              <button
-                key={tool.id}
-                onClick={() => onToolSelect(tool.id)}
-                className={`
-                  w-full p-3 rounded-lg transition-all duration-200 
-                  flex flex-col items-center space-y-1 group relative
-                  ${isSelected 
-                    ? 'bg-gray-700 ring-2 ring-blue-400 scale-105' 
-                    : 'bg-gray-700/50 hover:bg-gray-700 hover:scale-102'
-                  }
-                `}
-              >
-                <IconComponent 
-                  className={`w-6 h-6 ${isSelected ? tool.color : 'text-gray-300 group-hover:text-white'}`}
-                />
-                <span className={`text-xs font-medium ${isSelected ? 'text-white' : 'text-gray-400 group-hover:text-white'}`}>
-                  {tool.name}
-                </span>
-                {/* Key binding indicator */}
-                <div className={`
-                  absolute -top-1 -right-1 w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center
-                  ${isSelected ? 'bg-blue-400 text-white' : 'bg-gray-600 text-gray-300'}
-                `}>
-                  {tool.keyBinding}
-                </div>
-              </button>
+              <div key={tool.id} className="relative">
+                <button
+                  onClick={() => onToolSelect(tool.id)}
+                  className={`
+                    w-full p-3 rounded-lg transition-all duration-200 
+                    flex flex-col items-center space-y-1 group relative
+                    ${isSelected 
+                      ? 'bg-gray-700 ring-2 ring-blue-400 scale-105' 
+                      : 'bg-gray-700/50 hover:bg-gray-700 hover:scale-102'
+                    }
+                  `}
+                >
+                  <IconComponent 
+                    className={`w-6 h-6 ${isSelected ? tool.color : 'text-gray-300 group-hover:text-white'}`}
+                  />
+                  <span className={`text-xs font-medium ${isSelected ? 'text-white' : 'text-gray-400 group-hover:text-white'}`}>
+                    {tool.name}
+                  </span>
+                  {/* Key binding indicator */}
+                  <div className={`
+                    absolute -top-1 -right-1 w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center
+                    ${isSelected ? 'bg-blue-400 text-white' : 'bg-gray-600 text-gray-300'}
+                  `}>
+                    {tool.keyBinding}
+                  </div>
+                </button>
+                
+                {/* Individual weapon mute button */}
+                <button
+                  onClick={() => onWeaponMuteToggle(tool.id)}
+                  className={`
+                    absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center
+                    transition-all duration-200 hover:scale-110
+                    ${isMuted 
+                      ? 'bg-red-500 text-white' 
+                      : 'bg-green-500 text-white'
+                    }
+                  `}
+                  title={isMuted ? `Unmute ${tool.name}` : `Mute ${tool.name}`}
+                >
+                  {isMuted ? (
+                    <VolumeX className="w-3 h-3" />
+                  ) : (
+                    <Volume2 className="w-3 h-3" />
+                  )}
+                </button>
+              </div>
             );
           })}
         </div>

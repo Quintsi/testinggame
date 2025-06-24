@@ -15,6 +15,9 @@ export const useGameState = () => {
   const [chainsawPath, setChainsawPath] = useState<{ x: number; y: number }[]>([]);
   const lastFlamethrowerDamage = useRef<{ x: number; y: number } | null>(null);
   
+  // Individual weapon muting state
+  const [mutedWeapons, setMutedWeapons] = useState<Set<Tool>>(new Set());
+  
   const { 
     bugs, 
     gameStarted, 
@@ -44,6 +47,22 @@ export const useGameState = () => {
     if (mode === 'pest-control') resetGame();
   };
 
+  const toggleWeaponMute = (weapon: Tool) => {
+    setMutedWeapons(prev => {
+      const newMuted = new Set(prev);
+      if (newMuted.has(weapon)) {
+        newMuted.delete(weapon);
+      } else {
+        newMuted.add(weapon);
+      }
+      return newMuted;
+    });
+  };
+
+  const isWeaponMuted = (weapon: Tool) => {
+    return mutedWeapons.has(weapon);
+  };
+
   return {
     // State
     selectedTool,
@@ -64,6 +83,7 @@ export const useGameState = () => {
     timeLeft,
     missedAttempts,
     PEST_WEAPON_MAP,
+    mutedWeapons,
     
     // Setters
     setSelectedTool,
@@ -82,5 +102,7 @@ export const useGameState = () => {
     startGame,
     killBug,
     attemptKill,
+    toggleWeaponMute,
+    isWeaponMuted,
   };
 };

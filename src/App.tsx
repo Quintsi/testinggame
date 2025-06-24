@@ -31,6 +31,7 @@ function App() {
     timeLeft,
     missedAttempts,
     PEST_WEAPON_MAP,
+    mutedWeapons,
     
     // Setters
     setSelectedTool,
@@ -49,6 +50,8 @@ function App() {
     startGame,
     killBug,
     attemptKill,
+    toggleWeaponMute,
+    isWeaponMuted,
   } = useGameState();
 
   const {
@@ -74,7 +77,8 @@ function App() {
     killBug,
     attemptKill,
     volume,
-    soundEnabled
+    soundEnabled,
+    isWeaponMuted
   );
 
   const tools: { id: Tool; icon: React.ComponentType; name: string; color: string; keyBinding: string }[] = [
@@ -144,6 +148,8 @@ function App() {
           onSoundToggle={toggleSound}
           volume={volume}
           onVolumeChange={setVolume}
+          mutedWeapons={mutedWeapons}
+          onWeaponMuteToggle={toggleWeaponMute}
         />
       )}
 
