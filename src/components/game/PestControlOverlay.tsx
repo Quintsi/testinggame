@@ -42,7 +42,7 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
       case 'snail':
         return '/asset/enermyImage/snail.png';
       case 'caterpillar':
-        return '/asset/enermyImage/caterpilla.png';
+        return '/asset/enermyImage/caterpillar.png';
       default:
         return '/asset/enermyImage/snail.png';
     }
