@@ -139,7 +139,7 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
       {gameStarted && !gameEnded && bugs.map((bug) => (
         <div
           key={bug.id}
-          className="absolute z-30 animate-pulse cursor-none"
+          className="absolute z-55 animate-pulse cursor-none" // z-30 before change z-55
           style={{
             left: bug.x - 20,
             top: bug.y - 20,
