@@ -68,25 +68,35 @@ export const useMouseHandlers = (
   }, [isMouseDown, selectedTool, gameMode, setMousePosition, setChainsawPath, setChainsawPaths, desktopRef]);
 
   const getWeaponHitbox = useCallback((x: number, y: number, tool: Tool) => {
-    // Position hitbox to match the weapon image position
-    const weaponOffsetX = 10; // Same as weapon image offset
-    const weaponOffsetY = -25; // Same as weapon image offset
-    const weaponSize = 64; // w-16 = 64px
+    // In pest control mode, center the hitbox on the cursor position
+    // In desktop destroyer mode, use the weapon image position
+    let centerX, centerY;
     
-    // Calculate the center of the weapon image
-    const weaponCenterX = x + weaponOffsetX + (weaponSize / 2);
-    const weaponCenterY = y + weaponOffsetY + (weaponSize / 2);
+    if (gameMode === 'pest-control') {
+      // Center hitbox directly on cursor position
+      centerX = x;
+      centerY = y;
+    } else {
+      // Position hitbox to match the weapon image position (for desktop destroyer mode)
+      const weaponOffsetX = 10; // Same as weapon image offset
+      const weaponOffsetY = -25; // Same as weapon image offset
+      const weaponSize = 64; // w-16 = 64px
+      
+      // Calculate the center of the weapon image
+      centerX = x + weaponOffsetX + (weaponSize / 2);
+      centerY = y + weaponOffsetY + (weaponSize / 2);
+    }
     
     switch (tool) {
-      case 'hammer': return { x: weaponCenterX - 50, y: weaponCenterY - 50, width: 100, height: 100 };
-      case 'gun': return { x: weaponCenterX - 40, y: weaponCenterY - 40, width: 80, height: 80 };
-      case 'flamethrower': return { x: weaponCenterX - 70, y: weaponCenterY - 70, width: 140, height: 140 };
-      case 'laser': return { x: weaponCenterX - 60, y: weaponCenterY - 16, width: 120, height: 32 };
-      case 'paintball': return { x: weaponCenterX - 90, y: weaponCenterY - 90, width: 180, height: 180 };
-      case 'chainsaw': return { x: weaponCenterX - 60, y: weaponCenterY - 60, width: 120, height: 120 };
-      default: return { x: weaponCenterX - 40, y: weaponCenterY - 40, width: 80, height: 80 };
+      case 'hammer': return { x: centerX - 50, y: centerY - 50, width: 100, height: 100 };
+      case 'gun': return { x: centerX - 40, y: centerY - 40, width: 80, height: 80 };
+      case 'flamethrower': return { x: centerX - 70, y: centerY - 70, width: 140, height: 140 };
+      case 'laser': return { x: centerX - 60, y: centerY - 16, width: 120, height: 32 };
+      case 'paintball': return { x: centerX - 90, y: centerY - 90, width: 180, height: 180 };
+      case 'chainsaw': return { x: centerX - 60, y: centerY - 60, width: 120, height: 120 };
+      default: return { x: centerX - 40, y: centerY - 40, width: 80, height: 80 };
     }
-  }, []);
+  }, [gameMode]);
 
   const checkCollision = useCallback((weaponHitbox: any, bugX: number, bugY: number) => {
     // Increase bug hitbox size for more forgiving collision detection
@@ -123,4 +133,4 @@ export const useMouseHandlers = (
     getWeaponHitbox,
     checkCollision,
   };
-}; 
+};

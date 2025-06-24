@@ -204,15 +204,11 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
           hitbox = { width: 80, height: 80 };
       }
 
-      // Position hitbox to match the weapon image position
-      const weaponOffsetX = 10; // Same as weapon image offset
-      const weaponOffsetY = -25; // Same as weapon image offset
-      const weaponSize = 64; // w-16 = 64px
-
+      // Center hitbox directly on cursor position in pest control mode
       return {
         position: 'absolute' as const,
-        left: mousePosition.x + weaponOffsetX + (weaponSize / 2) - (hitbox.width / 2),
-        top: mousePosition.y + weaponOffsetY + (weaponSize / 2) - (hitbox.height / 2),
+        left: mousePosition.x - (hitbox.width / 2),
+        top: mousePosition.y - (hitbox.height / 2),
         width: hitbox.width,
         height: hitbox.height,
         border: '2px dashed rgba(255, 0, 0, 0.5)',
@@ -261,12 +257,12 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
         {gameMode === 'pest-control' && (
           <>
             <div style={getWeaponHitboxStyle()} />
-            {/* Weapon center point indicator */}
+            {/* Weapon center point indicator - now centered on cursor */}
             <div
               style={{
                 position: 'absolute',
-                left: mousePosition.x + 10 + 32 - 2, // weaponOffsetX + weaponSize/2 - 2
-                top: mousePosition.y - 25 + 32 - 2, // weaponOffsetY + weaponSize/2 - 2
+                left: mousePosition.x - 2,
+                top: mousePosition.y - 2,
                 width: 4,
                 height: 4,
                 backgroundColor: 'rgba(255, 255, 0, 0.8)',
