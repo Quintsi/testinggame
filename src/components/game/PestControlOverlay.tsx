@@ -135,26 +135,22 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
         </div>
       )}
 
-      {/* Bugs - Now with full screen spawning capability */}
+      {/* Bugs - Now with pointer-events-none to prevent click interference */}
       {gameStarted && !gameEnded && bugs.map((bug) => (
         <div
           key={bug.id}
-          className="absolute z-30 animate-pulse cursor-none"
+          className="absolute z-30 animate-pulse pointer-events-none"
           style={{
             left: bug.x - 20,
             top: bug.y - 20,
             width: '40px',
             height: '40px',
           }}
-          onClick={(e) => {
-            e.stopPropagation();
-            onBugClick(bug.id, e);
-          }}
         >
           <img 
             src={getBugImage(selectedTool)} 
             alt="pest" 
-            className="w-full h-full object-contain hover:scale-110 transition-transform duration-150"
+            className="w-full h-full object-contain hover:scale-110 transition-transform duration-150 pointer-events-none"
           />
         </div>
       ))}
