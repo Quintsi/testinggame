@@ -1,14 +1,13 @@
 import React, { useEffect } from 'react';
 import { Hammer, Zap, Flame, Paintbrush, RotateCcw, Target, Fan } from 'lucide-react';
-import DesktopEnvironment from './components/desktop/DesktopEnvironment';
+import DesktopContainer from './components/desktop/DesktopContainer';
 import ToolSidebar from './components/tools/ToolSidebar';
 import ParticleSystem from './components/tools/ParticleSystem';
 import GameModeSelector from './components/game/GameModeSelector';
 import PestControlOverlay from './components/game/PestControlOverlay';
-import { GameClockProvider } from './components/effects/GameClockProvider';
 import { InstructionText } from './components/ui/InstructionText';
+import { GameClockProvider } from './components/effects/GameClockProvider';
 import { useGameState } from './hooks/useGameState';
-import { useDesktopInteraction } from './components/desktop/DesktopInteraction';
 import { Tool } from './types/game';
 
 function App() {
@@ -54,33 +53,6 @@ function App() {
     toggleWeaponMute,
     isWeaponMuted,
   } = useGameState();
-
-  const {
-    desktopRef,
-    handleDesktopMouseDown,
-    handleDesktopMouseUp,
-    handleDesktopClick,
-  } = useDesktopInteraction(
-    selectedTool,
-    gameMode,
-    mousePosition,
-    isMouseDown,
-    chainsawPath,
-    bugs,
-    gameStarted,
-    setMousePosition,
-    setIsMouseDown,
-    setChainsawPath,
-    setChainsawPaths,
-    setDamageEffects,
-    setParticles,
-    setSelectedTool,
-    killBug,
-    attemptKill,
-    volume,
-    soundEnabled,
-    isWeaponMuted
-  );
 
   const tools: { id: Tool; icon: React.ComponentType; name: string; color: string; keyBinding: string }[] = [
     { id: 'hammer', icon: Hammer, name: 'Hammer', color: 'text-yellow-400', keyBinding: '1' },
@@ -157,17 +129,29 @@ function App() {
 
         {/* Desktop Environment */}
         <div className="flex-1 relative">
-          <DesktopEnvironment
-            ref={desktopRef}
-            onClick={handleDesktopClick}
-            onMouseDown={handleDesktopMouseDown}
-            onMouseUp={handleDesktopMouseUp}
-            damageEffects={damageEffects}
-            chainsawPaths={chainsawPaths}
+          <DesktopContainer
             selectedTool={selectedTool}
             gameMode={gameMode}
             mousePosition={mousePosition}
-            bugs={gameMode === 'pest-control' ? bugs : undefined}
+            isMouseDown={isMouseDown}
+            chainsawPath={chainsawPath}
+            bugs={bugs}
+            gameStarted={gameStarted}
+            damageEffects={damageEffects}
+            chainsawPaths={chainsawPaths}
+            setMousePosition={setMousePosition}
+            setIsMouseDown={setIsMouseDown}
+            setChainsawPath={setChainsawPath}
+            setChainsawPaths={setChainsawPaths}
+            setDamageEffects={setDamageEffects}
+            setParticles={setParticles}
+            setSelectedTool={setSelectedTool}
+            killBug={killBug}
+            attemptKill={attemptKill}
+            volume={volume}
+            soundEnabled={soundEnabled}
+            isWeaponMuted={isWeaponMuted}
+            lastFlamethrowerDamage={lastFlamethrowerDamage}
           />
           
           {/* Pest Control Overlay */}
