@@ -129,10 +129,12 @@ export const useDesktopInteraction = ({
       const x = event.clientX - rect.left;
       const y = event.clientY - rect.top;
 
-      // Check collision with bugs
+      // Get weapon hitbox for collision detection
+      const weaponHitbox = getWeaponHitbox(x, y, selectedTool);
+
+      // Check collision with bugs using weapon hitbox
       const hitBug = bugs.find(bug => {
-        const distance = Math.sqrt(Math.pow(x - bug.x, 2) + Math.pow(y - bug.y, 2));
-        return distance <= 20; // Bug hit radius
+        return checkCollision(weaponHitbox, bug.x, bug.y);
       });
 
       if (hitBug) {
@@ -153,11 +155,11 @@ export const useDesktopInteraction = ({
             }
           }, 100);
           
-          // Create pest damage effect with random b1, b2, b3 image
-          createPestDamageEffect(x, y, setPestDamageEffects);
+          // Create pest damage effect with random b1, b2, b3 image at bug position
+          createPestDamageEffect(hitBug.x, hitBug.y, setPestDamageEffects);
           
-          // Create particles for successful hit
-          createBugParticles(x, y, selectedTool, getRandomPaintColor, setParticles);
+          // Create particles for successful hit at bug position
+          createBugParticles(hitBug.x, hitBug.y, selectedTool, getRandomPaintColor, setParticles);
         } else {
           // Failed attempt
           attemptKill(hitBug.id);
@@ -169,7 +171,7 @@ export const useDesktopInteraction = ({
         }
       }
     }
-  }, [gameMode, gameStarted, bugs, selectedTool, killBug, attemptKill, soundEnabled, isWeaponMuted, playSound, playSquishSound, createPestDamageEffect, setPestDamageEffects, createBugParticles, setParticles]);
+  }, [gameMode, gameStarted, bugs, selectedTool, killBug, attemptKill, soundEnabled, isWeaponMuted, playSound, playSquishSound, createPestDamageEffect, setPestDamageEffects, createBugParticles, setParticles, getWeaponHitbox, checkCollision]);
 
   // Global mouse up handler to stop sounds when mouse is released outside desktop
   useEffect(() => {
