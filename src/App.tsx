@@ -35,6 +35,7 @@ function App() {
     mutedWeapons,
     pestDamageEffects,
     
+    
     // Setters
     setSelectedTool,
     setDamageEffects,
@@ -189,6 +190,7 @@ function App() {
             soundEnabled={soundEnabled}
           />
         )}
+        <GameClockTester />
       </div>
     </GameClockProvider>
   );
