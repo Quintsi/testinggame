@@ -3,6 +3,7 @@ import { Tool, GameMode } from '../types/game';
 
 export const useSoundEffects = (volume: number = 0.5, gameMode: GameMode = 'desktop-destroyer') => {
   // Pre-load audio files for better performance
+
   const audioFiles = useMemo(() => {
     // Use different audio files for pest control mode
     const gunAudio = gameMode === 'pest-control' ? '/asset/soundeffect/gun2.mp3' : '/asset/soundeffect/gun.mp3';
@@ -18,6 +19,7 @@ export const useSoundEffects = (volume: number = 0.5, gameMode: GameMode = 'desk
       squish: new Audio('/asset/soundeffect/squish.mp3'), // Add squish sound for pest hits
     };
   }, [gameMode]);
+
 
   // Store currently playing audio for each tool
   const playingAudio = useMemo(() => new Map<Tool, HTMLAudioElement>(), []);
@@ -60,15 +62,15 @@ export const useSoundEffects = (volume: number = 0.5, gameMode: GameMode = 'desk
   }, [playingAudio]);
 
   // Legacy function for backward compatibility (plays sound once)
-  const playSound = useCallback((tool: Tool) => {
+  const playSound = useCallback((tool: Tool, customVolume?: number) => {
     const audio = audioFiles[tool];
     
     if (audio) {
       // Reset audio to beginning if it's already playing
       audio.currentTime = 0;
       
-      // Set volume using the volume parameter
-      audio.volume = volume;
+      // Set volume using the volume parameter or custom volume
+      audio.volume = customVolume !== undefined ? customVolume : volume;
       
       // Play the sound
       audio.play().catch(error => {
@@ -87,6 +89,7 @@ export const useSoundEffects = (volume: number = 0.5, gameMode: GameMode = 'desk
       
       // Set volume higher than normal for more prominent squish sound
       squishAudio.volume = Math.min(volume * 6, 1.0); // 6x volume, capped at 1.0
+
       
       // Play the squish sound
       squishAudio.play().catch(error => {

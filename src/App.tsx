@@ -34,6 +34,7 @@ function App() {
     mutedWeapons,
     pestDamageEffects,
     
+    
     // Setters
     setSelectedTool,
     setDamageEffects,

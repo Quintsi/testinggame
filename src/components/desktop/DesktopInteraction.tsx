@@ -130,6 +130,7 @@ export const useDesktopInteraction = ({
       const x = event.clientX - rect.left;
       const y = event.clientY - rect.top;
 
+<<<<<<< trang1
       // Check collision with bugs using weapon hitbox and fallback distance check
       const weaponHitbox = getWeaponHitbox(x, y, selectedTool);
       const hitBug = bugs.find(bug => {
@@ -143,7 +144,27 @@ export const useDesktopInteraction = ({
         }
         
         return hitboxCollision;
+=======
+      // Get weapon hitbox for collision detection
+      const weaponHitbox = getWeaponHitbox(x, y, selectedTool);
+
+      // Check collision with bugs using weapon hitbox
+      const hitBug = bugs.find(bug => {
+        return checkCollision(weaponHitbox, bug.x, bug.y);
+>>>>>>> main
       });
+
+      // Always play weapon sound when clicking (if sound enabled and weapon not muted)
+      if (soundEnabled && !isWeaponMuted(selectedTool)) {
+        if (hitBug) {
+          // If hitting a bug, play weapon sound at 50% volume so squish sound is more audible
+          const quietVolume = (volume / 100) * 0.5;
+          playSound(selectedTool, quietVolume);
+        } else {
+          // If not hitting a bug, play weapon sound at normal volume
+          playSound(selectedTool);
+        }
+      }
 
       if (hitBug) {
         // Check if correct weapon is selected
@@ -151,11 +172,14 @@ export const useDesktopInteraction = ({
           // Successful kill
           killBug(hitBug.id);
           
+<<<<<<< trang1
           // Play weapon sound with reduced volume for successful hit
           if (soundEnabled && !isWeaponMuted(selectedTool)) {
             playWeaponSoundReduced(selectedTool);
           }
           
+=======
+>>>>>>> main
           // Play squish sound after a short delay
           setTimeout(() => {
             if (soundEnabled) {
@@ -163,12 +187,13 @@ export const useDesktopInteraction = ({
             }
           }, 100);
           
-          // Create pest damage effect with random b1, b2, b3 image
-          createPestDamageEffect(x, y, setPestDamageEffects);
+          // Create pest damage effect with random b1, b2, b3 image at bug position
+          createPestDamageEffect(hitBug.x, hitBug.y, setPestDamageEffects);
           
-          // Create particles for successful hit
-          createBugParticles(x, y, selectedTool, getRandomPaintColor, setParticles);
+          // Create particles for successful hit at bug position
+          createBugParticles(hitBug.x, hitBug.y, selectedTool, getRandomPaintColor, setParticles);
         } else {
+<<<<<<< trang1
           // Failed attempt - wrong weapon
           attemptKill(hitBug.id);
           
@@ -181,10 +206,14 @@ export const useDesktopInteraction = ({
         // Play weapon sound if there are compatible pests in the game (missed them)
         if (compatiblePestExists && soundEnabled && !isWeaponMuted(selectedTool)) {
           playSound(selectedTool);
+=======
+          // Failed attempt (wrong weapon)
+          attemptKill(hitBug.id);
+>>>>>>> main
         }
       }
     }
-  }, [gameMode, gameStarted, bugs, selectedTool, killBug, attemptKill, soundEnabled, isWeaponMuted, playSound, playSquishSound, createPestDamageEffect, setPestDamageEffects, createBugParticles, setParticles]);
+  }, [gameMode, gameStarted, bugs, selectedTool, killBug, attemptKill, soundEnabled, isWeaponMuted, playSound, playSquishSound, createPestDamageEffect, setPestDamageEffects, createBugParticles, setParticles, getWeaponHitbox, checkCollision, volume]);
 
   // Global mouse up handler to stop sounds when mouse is released outside desktop
   useEffect(() => {
