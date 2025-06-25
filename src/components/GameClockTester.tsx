@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useGameClock } from './hooks/useGameClock.ts'; // Make sure path is correct
+import { useGameClock } from '../hooks/useGameClock'; // Fixed path - removed .ts extension and corrected relative path
  
 export const GameClockTester = () => {
   const [tickCount, setTickCount] = useState(0);
