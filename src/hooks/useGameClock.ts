@@ -59,14 +59,24 @@ export const useGameClock = (targetFPS: number = 60) => {
   }, []);
 
   const subscribe = useCallback((subscriber: GameClockSubscriber) => {
-    subscribersRef.current.set(subscriber.id, subscriber);
-    
-    // Return unsubscribe function
-    return () => {
-      subscribersRef.current.delete(subscriber.id);
-    };
-  }, []);
+  subscribersRef.current.set(subscriber.id, subscriber);
 
+  // 🔧 Explicitly start if not already running
+  if (!isRunningRef.current) {
+    start();
+  }
+
+  // Return unsubscribe function
+  return () => {
+    subscribersRef.current.delete(subscriber.id);
+
+    // If no subscribers left, stop
+    if (subscribersRef.current.size === 0) {
+      stop();
+    }
+  };
+}, [start, stop]);
+  
   const unsubscribe = useCallback((id: string) => {
     subscribersRef.current.delete(id);
   }, []);
@@ -74,17 +84,6 @@ export const useGameClock = (targetFPS: number = 60) => {
   const getSubscriberCount = useCallback(() => {
     return subscribersRef.current.size;
   }, []);
-
-  // Auto-start/stop based on subscribers
-  useEffect(() => {
-    const hasSubscribers = subscribersRef.current.size > 0;
-    
-    if (hasSubscribers && !isRunningRef.current) {
-      start();
-    } else if (!hasSubscribers && isRunningRef.current) {
-      stop();
-    }
-  });
 
   // Cleanup on unmount
   useEffect(() => {
