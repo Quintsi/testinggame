@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { Tool, DamageEffect } from '../types/game';
+import { Tool, DamageEffect, PestDamageEffect } from '../types/game';
 
 export const useDamageEffects = () => {
   // Generate random paint colors
@@ -44,8 +44,29 @@ export const useDamageEffects = () => {
     setDamageEffects(prev => [...prev, newDamage]);
   }, []);
 
+  // Create pest damage effect with random b1, b2, b3 image
+  const createPestDamageEffect = useCallback((
+    x: number,
+    y: number,
+    setPestDamageEffects: React.Dispatch<React.SetStateAction<PestDamageEffect[]>>
+  ) => {
+    const imageTypes: ('b1' | 'b2' | 'b3')[] = ['b1', 'b2', 'b3'];
+    const randomImageType = imageTypes[Math.floor(Math.random() * imageTypes.length)];
+    
+    const newPestDamage: PestDamageEffect = {
+      id: Date.now() + Math.random(),
+      x,
+      y,
+      imageType: randomImageType,
+      timestamp: Date.now(),
+    };
+    
+    setPestDamageEffects(prev => [...prev, newPestDamage]);
+  }, []);
+
   return {
     createDamageEffect,
+    createPestDamageEffect,
     getRandomPaintColor,
   };
 }; 

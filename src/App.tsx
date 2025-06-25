@@ -32,6 +32,7 @@ function App() {
     missedAttempts,
     PEST_WEAPON_MAP,
     mutedWeapons,
+    pestDamageEffects,
     
     // Setters
     setSelectedTool,
@@ -43,6 +44,7 @@ function App() {
     setMousePosition,
     setIsMouseDown,
     setChainsawPath,
+    setPestDamageEffects,
     
     // Actions
     resetDesktop,
@@ -138,12 +140,14 @@ function App() {
             bugs={bugs}
             gameStarted={gameStarted}
             damageEffects={damageEffects}
+            pestDamageEffects={pestDamageEffects}
             chainsawPaths={chainsawPaths}
             setMousePosition={setMousePosition}
             setIsMouseDown={setIsMouseDown}
             setChainsawPath={setChainsawPath}
             setChainsawPaths={setChainsawPaths}
             setDamageEffects={setDamageEffects}
+            setPestDamageEffects={setPestDamageEffects}
             setParticles={setParticles}
             setSelectedTool={setSelectedTool}
             killBug={killBug}

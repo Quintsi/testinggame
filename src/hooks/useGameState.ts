@@ -1,11 +1,12 @@
-import { useState, useRef } from 'react';
-import { Tool, DamageEffect, ChainsawPathEffect, GameMode } from '../types/game';
+import { useState, useRef, useCallback } from 'react';
+import { Tool, DamageEffect, ChainsawPathEffect, GameMode, PestDamageEffect } from '../types/game';
 import { usePestControl } from './usePestControl';
 
 export const useGameState = () => {
   const [selectedTool, setSelectedTool] = useState<Tool>('hammer');
   const [gameMode, setGameMode] = useState<GameMode>('desktop-destroyer');
   const [damageEffects, setDamageEffects] = useState<DamageEffect[]>([]);
+  const [pestDamageEffects, setPestDamageEffects] = useState<PestDamageEffect[]>([]);
   const [chainsawPaths, setChainsawPaths] = useState<ChainsawPathEffect[]>([]);
   const [particles, setParticles] = useState<any[]>([]);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -25,15 +26,21 @@ export const useGameState = () => {
     score, 
     timeLeft, 
     missedAttempts,
-    startGame, 
+    startGame: startPestGame, 
     killBug, 
     attemptKill,
     resetGame,
     PEST_WEAPON_MAP
   } = usePestControl();
 
+  // Wrapper function to start game and clear pest damage effects
+  const startGame = useCallback(() => {
+    startPestGame(setPestDamageEffects);
+  }, [startPestGame, setPestDamageEffects]);
+
   const resetDesktop = () => {
     setDamageEffects([]);
+    setPestDamageEffects([]);
     setChainsawPaths([]);
     setParticles([]);
     if (gameMode === 'pest-control') resetGame();
@@ -42,6 +49,7 @@ export const useGameState = () => {
   const handleModeChange = (mode: GameMode) => {
     setGameMode(mode);
     setDamageEffects([]);
+    setPestDamageEffects([]);
     setChainsawPaths([]);
     setParticles([]);
     if (mode === 'pest-control') resetGame();
@@ -68,6 +76,7 @@ export const useGameState = () => {
     selectedTool,
     gameMode,
     damageEffects,
+    pestDamageEffects,
     chainsawPaths,
     particles,
     soundEnabled,
@@ -88,6 +97,7 @@ export const useGameState = () => {
     // Setters
     setSelectedTool,
     setDamageEffects,
+    setPestDamageEffects,
     setChainsawPaths,
     setParticles,
     setSoundEnabled,

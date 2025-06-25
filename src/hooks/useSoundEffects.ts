@@ -10,6 +10,7 @@ export const useSoundEffects = (volume: number = 0.5) => {
     laser: new Audio('/asset/soundeffect/laser.mp3'),
     paintball: new Audio('/asset/soundeffect/paintball.mp3'), 
     chainsaw: new Audio('/asset/soundeffect/chainsaw.wav'),
+    squish: new Audio('/asset/soundeffect/squish.mp3'), // Add squish sound for pest hits
   }), []);
 
   // Store currently playing audio for each tool
@@ -70,5 +71,23 @@ export const useSoundEffects = (volume: number = 0.5) => {
     }
   }, [audioFiles, volume]);
 
-  return { startSound, stopSound, playSound };
+  // Function to play squish sound for pest hits
+  const playSquishSound = useCallback(() => {
+    const squishAudio = audioFiles.squish;
+    
+    if (squishAudio) {
+      // Reset audio to beginning if it's already playing
+      squishAudio.currentTime = 0;
+      
+      // Set volume higher than normal for more prominent squish sound
+      squishAudio.volume = Math.min(volume * 4, 1.0); // 1.5x volume, capped at 1.0
+      
+      // Play the squish sound
+      squishAudio.play().catch(error => {
+        console.warn('Failed to play squish sound:', error);
+      });
+    }
+  }, [audioFiles, volume]);
+
+  return { startSound, stopSound, playSound, playSquishSound };
 };

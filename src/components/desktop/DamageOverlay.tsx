@@ -1,12 +1,13 @@
 import React from 'react';
-import { DamageEffect, ChainsawPathEffect } from '../types/game';
+import { DamageEffect, ChainsawPathEffect, PestDamageEffect } from '../../types/game';
 
 interface DamageOverlayProps {
   effects: DamageEffect[];
   chainsawPaths: ChainsawPathEffect[];
+  pestDamageEffects?: PestDamageEffect[]; // Add optional pest damage effects
 }
 
-const DamageOverlay: React.FC<DamageOverlayProps> = ({ effects, chainsawPaths }) => {
+const DamageOverlay: React.FC<DamageOverlayProps> = ({ effects, chainsawPaths, pestDamageEffects = [] }) => {
   const getDamageStyle = (effect: DamageEffect): React.CSSProperties | undefined => {
     const baseStyle = {
       position: 'absolute' as const,
@@ -120,6 +121,23 @@ const DamageOverlay: React.FC<DamageOverlayProps> = ({ effects, chainsawPaths })
       default:
         return baseStyle;
     }
+  };
+
+  // Get pest damage image style
+  const getPestDamageStyle = (effect: PestDamageEffect): React.CSSProperties => {
+    return {
+      position: 'absolute' as const,
+      left: effect.x - 25,
+      top: effect.y - 25,
+      width: 50,
+      height: 50,
+      backgroundImage: `url("/asset/damageImage/${effect.imageType}.png")`,
+      backgroundSize: 'contain',
+      backgroundRepeat: 'no-repeat',
+      backgroundPosition: 'center',
+      pointerEvents: 'none' as const,
+      zIndex: 15, // Higher than regular damage effects
+    };
   };
 
   // Create flower splatter for flamethrower impacts (swapped from paintball)
@@ -266,29 +284,36 @@ const DamageOverlay: React.FC<DamageOverlayProps> = ({ effects, chainsawPaths })
         }
       })}
 
+      {/* Render pest damage effects */}
+      {pestDamageEffects.map((effect) => (
+        <div
+          key={effect.id}
+          style={getPestDamageStyle(effect)}
+        />
+      ))}
+
       {/* Render chainsaw paths */}
-      {chainsawPaths.map((pathEffect) => (
+      {chainsawPaths.map((path, pathIndex) => (
         <svg
-          key={pathEffect.id}
+          key={pathIndex}
           style={{
             position: 'absolute',
-            top: 0,
             left: 0,
+            top: 0,
             width: '100%',
             height: '100%',
             pointerEvents: 'none',
-            zIndex: 10,
+            zIndex: 5,
           }}
         >
           <path
-            d={pathEffect.path.map((point, index) => 
+            d={path.path.map((point: { x: number; y: number }, index: number) => 
               `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`
             ).join(' ')}
-            stroke="#000000"
-            strokeWidth="2"
+            stroke="#8B4513"
+            strokeWidth="3"
             fill="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+            opacity="0.8"
           />
         </svg>
       ))}

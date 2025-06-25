@@ -13,6 +13,14 @@ export interface DamageEffect {
   color?: string; // Add color property for paintball effects
 }
 
+export interface PestDamageEffect {
+  id: number;
+  x: number;
+  y: number;
+  imageType: 'b1' | 'b2' | 'b3'; // Random damage image type
+  timestamp: number;
+}
+
 export interface ChainsawPathEffect {
   id: number;
   path: { x: number; y: number }[];
