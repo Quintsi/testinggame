@@ -137,16 +137,23 @@ export const useDesktopInteraction = ({
         return checkCollision(weaponHitbox, bug.x, bug.y);
       });
 
+      // Always play weapon sound when clicking (if sound enabled and weapon not muted)
+      if (soundEnabled && !isWeaponMuted(selectedTool)) {
+        if (hitBug) {
+          // If hitting a bug, play weapon sound at 50% volume so squish sound is more audible
+          const quietVolume = (volume / 100) * 0.5;
+          playSound(selectedTool, quietVolume);
+        } else {
+          // If not hitting a bug, play weapon sound at normal volume
+          playSound(selectedTool);
+        }
+      }
+
       if (hitBug) {
         // Check if correct weapon is selected
         if (selectedTool === hitBug.requiredWeapon) {
           // Successful kill
           killBug(hitBug.id);
-          
-          // Play weapon sound
-          if (soundEnabled && !isWeaponMuted(selectedTool)) {
-            playSound(selectedTool);
-          }
           
           // Play squish sound after a short delay
           setTimeout(() => {
@@ -161,17 +168,12 @@ export const useDesktopInteraction = ({
           // Create particles for successful hit at bug position
           createBugParticles(hitBug.x, hitBug.y, selectedTool, getRandomPaintColor, setParticles);
         } else {
-          // Failed attempt
+          // Failed attempt (wrong weapon)
           attemptKill(hitBug.id);
-          
-          // Play weapon sound for failed attempt
-          if (soundEnabled && !isWeaponMuted(selectedTool)) {
-            playSound(selectedTool);
-          }
         }
       }
     }
-  }, [gameMode, gameStarted, bugs, selectedTool, killBug, attemptKill, soundEnabled, isWeaponMuted, playSound, playSquishSound, createPestDamageEffect, setPestDamageEffects, createBugParticles, setParticles, getWeaponHitbox, checkCollision]);
+  }, [gameMode, gameStarted, bugs, selectedTool, killBug, attemptKill, soundEnabled, isWeaponMuted, playSound, playSquishSound, createPestDamageEffect, setPestDamageEffects, createBugParticles, setParticles, getWeaponHitbox, checkCollision, volume]);
 
   // Global mouse up handler to stop sounds when mouse is released outside desktop
   useEffect(() => {

@@ -5,7 +5,7 @@ export const useSoundEffects = (volume: number = 0.5) => {
   // Pre-load audio files for better performance
   const audioFiles = useMemo(() => ({
     hammer: new Audio('/asset/soundeffect/hammer.wav'),
-    gun: new Audio('/asset/soundeffect/gun1.mp3'),
+    gun: new Audio('/asset/soundeffect/gun.mp3'), // Fixed: use gun.mp3 instead of gun1.mp3
     flamethrower: new Audio('/asset/soundeffect/flamethrower.mp3'),
     laser: new Audio('/asset/soundeffect/laser.mp3'),
     paintball: new Audio('/asset/soundeffect/paintball.mp3'), 
@@ -54,15 +54,15 @@ export const useSoundEffects = (volume: number = 0.5) => {
   }, [playingAudio]);
 
   // Legacy function for backward compatibility (plays sound once)
-  const playSound = useCallback((tool: Tool) => {
+  const playSound = useCallback((tool: Tool, customVolume?: number) => {
     const audio = audioFiles[tool];
     
     if (audio) {
       // Reset audio to beginning if it's already playing
       audio.currentTime = 0;
       
-      // Set volume using the volume parameter
-      audio.volume = volume;
+      // Set volume using the volume parameter or custom volume
+      audio.volume = customVolume !== undefined ? customVolume : volume;
       
       // Play the sound
       audio.play().catch(error => {
@@ -80,7 +80,7 @@ export const useSoundEffects = (volume: number = 0.5) => {
       squishAudio.currentTime = 0;
       
       // Set volume higher than normal for more prominent squish sound
-      squishAudio.volume = Math.min(volume * 4, 1.0); // 1.5x volume, capped at 1.0
+      squishAudio.volume = Math.min(volume * 1.5, 1.0); // 1.5x volume, capped at 1.0
       
       // Play the squish sound
       squishAudio.play().catch(error => {
