@@ -55,12 +55,17 @@ export const usePestControl = () => {
     };
   }, [gameStarted, gameEnded, getRandomPestType]);
 
-  const startGame = useCallback(() => {
+  const startGame = useCallback((setPestDamageEffects?: React.Dispatch<React.SetStateAction<any[]>>) => {
     setGameStarted(true);
     setGameEnded(false);
     setScore(0);
     setTimeLeft(30);
     setMissedAttempts(0);
+    
+    // Clear pest damage effects when starting new game
+    if (setPestDamageEffects) {
+      setPestDamageEffects([]);
+    }
     
     // Create the first visible bug and pre-load the hidden one
     const firstBug = createBug();

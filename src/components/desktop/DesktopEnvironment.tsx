@@ -2,33 +2,25 @@ import React, { forwardRef, useState, useEffect } from 'react';
 import { Folder, FileText, Image, Music, Video, Settings, Trash2 } from 'lucide-react';
 import DamageOverlay from './DamageOverlay';
 import LaserBeamRenderer from '../effects/LaserBeamRenderer';
-import { DamageEffect, ChainsawPathEffect, Tool, GameMode } from '../../types/game';
-import { useGameClockContext } from '../effects/GameClockProvider';
+import { DamageEffect, ChainsawPathEffect, Tool, GameMode, PestDamageEffect } from '../../types/game';
 
 interface DesktopEnvironmentProps {
   onClick?: (event: React.MouseEvent) => void;
   onMouseDown?: (event: React.MouseEvent) => void;
   onMouseUp?: (event: React.MouseEvent) => void;
   damageEffects: DamageEffect[];
+  pestDamageEffects?: PestDamageEffect[];
   chainsawPaths: ChainsawPathEffect[];
   selectedTool: Tool;
   gameMode: GameMode;
   mousePosition: { x: number; y: number };
   bugs?: { id: number; x: number; y: number }[];
+  isMouseDown?: boolean;
 }
 
 const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
-  ({ onClick, onMouseDown, onMouseUp, damageEffects, chainsawPaths, selectedTool, gameMode, mousePosition, bugs }, ref) => {
-    const { weaponAnimations } = useGameClockContext();
+  ({ onClick, onMouseDown, onMouseUp, damageEffects, pestDamageEffects = [], chainsawPaths, selectedTool, gameMode, mousePosition, bugs, isMouseDown = false }, ref) => {
     const [backgroundImage, setBackgroundImage] = useState('');
-    const [currentWeaponFrame, setCurrentWeaponFrame] = useState<Record<Tool, number>>({
-      hammer: 1,
-      gun: 1,
-      flamethrower: 1,
-      laser: 1,
-      paintball: 1,
-      chainsaw: 1,
-    });
 
     // Select random background image on component mount
     useEffect(() => {
@@ -42,14 +34,6 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
     }, []);
 
     const handleClick = (event: React.MouseEvent) => {
-      // Start weapon animation on click
-      weaponAnimations.startWeaponAnimation(selectedTool, (frame) => {
-        setCurrentWeaponFrame(prev => ({
-          ...prev,
-          [selectedTool]: frame,
-        }));
-      });
-      
       // Call the original onClick handler
       if (onClick) {
         onClick(event);
@@ -57,16 +41,6 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
     };
 
     const handleMouseDown = (event: React.MouseEvent) => {
-      // Start weapon animation on mouse down for continuous weapons
-      if (selectedTool === 'gun' || selectedTool === 'flamethrower' || selectedTool === 'chainsaw') {
-        weaponAnimations.startWeaponAnimation(selectedTool, (frame) => {
-          setCurrentWeaponFrame(prev => ({
-            ...prev,
-            [selectedTool]: frame,
-          }));
-        });
-      }
-      
       // Call the original onMouseDown handler
       if (onMouseDown) {
         onMouseDown(event);
@@ -74,15 +48,6 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
     };
 
     const handleMouseUp = (event: React.MouseEvent) => {
-      // Stop weapon animation on mouse up for continuous weapons
-      if (selectedTool === 'gun' || selectedTool === 'flamethrower' || selectedTool === 'chainsaw') {
-        weaponAnimations.stopWeaponAnimation(selectedTool);
-        setCurrentWeaponFrame(prev => ({
-          ...prev,
-          [selectedTool]: 1, // Reset to first frame
-        }));
-      }
-      
       // Call the original onMouseUp handler
       if (onMouseUp) {
         onMouseUp(event);
@@ -100,7 +65,8 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
     };
 
     const getCurrentWeaponImage = () => {
-      const frame = currentWeaponFrame[selectedTool];
+      // Use isMouseDown to determine frame: frame 2 when mouse is down, frame 1 when mouse is up
+      const frame = isMouseDown ? 2 : 1;
       
       if (selectedTool === 'laser') {
         return `/asset/weaponImage/fg${frame}.png`;
@@ -339,6 +305,9 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
 
         {/* Damage Overlay - Only show in desktop destroyer mode */}
         {gameMode === 'desktop-destroyer' && <DamageOverlay effects={damageEffects} chainsawPaths={chainsawPaths} />}
+        
+        {/* Pest Damage Overlay - Show in pest control mode */}
+        {gameMode === 'pest-control' && <DamageOverlay effects={[]} chainsawPaths={[]} pestDamageEffects={pestDamageEffects} />}
       </div>
     );
   }
