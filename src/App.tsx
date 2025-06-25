@@ -9,6 +9,7 @@ import { InstructionText } from './components/ui/InstructionText';
 import { GameClockProvider } from './components/effects/GameClockProvider';
 import { useGameState } from './hooks/useGameState';
 import { Tool } from './types/game';
+import { GameClockTester } from './components/GameClockTester.jsx';
 
 function App() {
   const {
