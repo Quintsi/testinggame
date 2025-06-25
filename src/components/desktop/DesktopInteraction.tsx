@@ -55,7 +55,7 @@ export const useDesktopInteraction = ({
   const desktopRef = useRef<HTMLDivElement>(null);
   const { createDamageEffect, createPestDamageEffect, getRandomPaintColor } = useDamageEffects();
   const { createParticles, createBugParticles } = useParticleEffects();
-  const { startSound, stopSound, playSound, playSquishSound, playWeaponSoundReduced } = useSoundEffects(volume / 100, gameMode);
+  const { startSound, stopSound, playSound, playSquishSound } = useSoundEffects(volume / 100, gameMode);
   const { getWeaponHitbox, checkCollision } = useMouseHandlers(
     selectedTool, gameMode, mousePosition, isMouseDown, chainsawPath,
     setMousePosition, setIsMouseDown, setChainsawPath, setChainsawPaths, desktopRef,
@@ -130,7 +130,6 @@ export const useDesktopInteraction = ({
       const x = event.clientX - rect.left;
       const y = event.clientY - rect.top;
 
-<<<<<<< trang1
       // Check collision with bugs using weapon hitbox and fallback distance check
       const weaponHitbox = getWeaponHitbox(x, y, selectedTool);
       const hitBug = bugs.find(bug => {
@@ -144,42 +143,19 @@ export const useDesktopInteraction = ({
         }
         
         return hitboxCollision;
-=======
-      // Get weapon hitbox for collision detection
-      const weaponHitbox = getWeaponHitbox(x, y, selectedTool);
-
-      // Check collision with bugs using weapon hitbox
-      const hitBug = bugs.find(bug => {
-        return checkCollision(weaponHitbox, bug.x, bug.y);
->>>>>>> main
       });
-
-      // Always play weapon sound when clicking (if sound enabled and weapon not muted)
-      if (soundEnabled && !isWeaponMuted(selectedTool)) {
-        if (hitBug) {
-          // If hitting a bug, play weapon sound at 50% volume so squish sound is more audible
-          const quietVolume = (volume / 100) * 0.5;
-          playSound(selectedTool, quietVolume);
-        } else {
-          // If not hitting a bug, play weapon sound at normal volume
-          playSound(selectedTool);
-        }
-      }
 
       if (hitBug) {
         // Check if correct weapon is selected
         if (selectedTool === hitBug.requiredWeapon) {
-          // Successful kill
-          killBug(hitBug.id);
-          
-<<<<<<< trang1
-          // Play weapon sound with reduced volume for successful hit
+          // Successful kill - play weapon sound at reduced volume
           if (soundEnabled && !isWeaponMuted(selectedTool)) {
-            playWeaponSoundReduced(selectedTool);
+            const quietVolume = (volume / 100) * 0.5;
+            playSound(selectedTool, quietVolume);
           }
           
-=======
->>>>>>> main
+          killBug(hitBug.id);
+          
           // Play squish sound after a short delay
           setTimeout(() => {
             if (soundEnabled) {
@@ -193,11 +169,8 @@ export const useDesktopInteraction = ({
           // Create particles for successful hit at bug position
           createBugParticles(hitBug.x, hitBug.y, selectedTool, getRandomPaintColor, setParticles);
         } else {
-<<<<<<< trang1
-          // Failed attempt - wrong weapon
+          // Failed attempt - wrong weapon - NO SOUND
           attemptKill(hitBug.id);
-          
-          // No sound for wrong weapon attempts
         }
       } else {
         // Check if there are any compatible pests in the game for this weapon
@@ -206,10 +179,6 @@ export const useDesktopInteraction = ({
         // Play weapon sound if there are compatible pests in the game (missed them)
         if (compatiblePestExists && soundEnabled && !isWeaponMuted(selectedTool)) {
           playSound(selectedTool);
-=======
-          // Failed attempt (wrong weapon)
-          attemptKill(hitBug.id);
->>>>>>> main
         }
       }
     }

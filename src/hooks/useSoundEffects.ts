@@ -2,8 +2,18 @@ import { useCallback, useMemo } from 'react';
 import { Tool, GameMode } from '../types/game';
 
 export const useSoundEffects = (volume: number = 0.5, gameMode: GameMode = 'desktop-destroyer') => {
-  // Pre-load audio files for better performance
+  // Volume multipliers to normalize different sound effects to the same perceived loudness
+  const volumeMultipliers = useMemo(() => ({
+    hammer: 1.0,      // Base volume
+    gun: gameMode === 'pest-control' ? 0.2 : 0.8,  // Much quieter in pest control (gun2.mp3), normal in desktop
+    flamethrower: 0.9, // Slightly quieter
+    laser: 0.7,       // Lasers are often loud, make quieter
+    paintball: 0.8,   // Paintball guns can be loud
+    chainsaw: 0.6,    // Chainsaws are very loud, make much quieter
+    squish: 4.0,      // Normalize squish to base volume
+  }), [gameMode]);
 
+  // Pre-load audio files for better performance
   const audioFiles = useMemo(() => {
     // Use different audio files for pest control mode
     const gunAudio = gameMode === 'pest-control' ? '/asset/soundeffect/gun2.mp3' : '/asset/soundeffect/gun.mp3';
@@ -20,6 +30,12 @@ export const useSoundEffects = (volume: number = 0.5, gameMode: GameMode = 'desk
     };
   }, [gameMode]);
 
+  // Helper function to get normalized volume for a tool
+  const getNormalizedVolume = useCallback((tool: Tool, customVolume?: number) => {
+    const baseVolume = customVolume !== undefined ? customVolume : volume;
+    const multiplier = volumeMultipliers[tool] || 1.0;
+    return Math.min(baseVolume * multiplier, 1.0); // Cap at 1.0
+  }, [volume, volumeMultipliers]);
 
   // Store currently playing audio for each tool
   const playingAudio = useMemo(() => new Map<Tool, HTMLAudioElement>(), []);
@@ -37,7 +53,7 @@ export const useSoundEffects = (volume: number = 0.5, gameMode: GameMode = 'desk
 
       // Create a new audio instance for continuous playback
       const newAudio = new Audio(audio.src);
-      newAudio.volume = volume;
+      newAudio.volume = getNormalizedVolume(tool);
       newAudio.loop = true; // Enable looping for continuous playback
       
       // Store the playing audio
@@ -48,7 +64,7 @@ export const useSoundEffects = (volume: number = 0.5, gameMode: GameMode = 'desk
         console.warn('Failed to play sound:', error);
       });
     }
-  }, [audioFiles, playingAudio, volume]);
+  }, [audioFiles, playingAudio, getNormalizedVolume]);
 
   const stopSound = useCallback((tool: Tool) => {
     const audio = playingAudio.get(tool);
@@ -61,7 +77,7 @@ export const useSoundEffects = (volume: number = 0.5, gameMode: GameMode = 'desk
     }
   }, [playingAudio]);
 
-  // Legacy function for backward compatibility (plays sound once)
+  // Function to play sound once with optional custom volume
   const playSound = useCallback((tool: Tool, customVolume?: number) => {
     const audio = audioFiles[tool];
     
@@ -69,15 +85,24 @@ export const useSoundEffects = (volume: number = 0.5, gameMode: GameMode = 'desk
       // Reset audio to beginning if it's already playing
       audio.currentTime = 0;
       
-      // Set volume using the volume parameter or custom volume
-      audio.volume = customVolume !== undefined ? customVolume : volume;
+      // Set normalized volume
+      audio.volume = getNormalizedVolume(tool, customVolume);
       
       // Play the sound
       audio.play().catch(error => {
         console.warn('Failed to play sound:', error);
       });
+
+      // For chainsaw in pest control mode, make it shorter
+      if (tool === 'chainsaw' && gameMode === 'pest-control') {
+        // Stop the sound after 0.5 seconds
+        setTimeout(() => {
+          audio.pause();
+          audio.currentTime = 0;
+        }, 500);
+      }
     }
-  }, [audioFiles, volume]);
+  }, [audioFiles, getNormalizedVolume, gameMode]);
 
   // Function to play squish sound for pest hits
   const playSquishSound = useCallback(() => {
@@ -87,48 +112,15 @@ export const useSoundEffects = (volume: number = 0.5, gameMode: GameMode = 'desk
       // Reset audio to beginning if it's already playing
       squishAudio.currentTime = 0;
       
-      // Set volume higher than normal for more prominent squish sound
-      squishAudio.volume = Math.min(volume * 6, 1.0); // 6x volume, capped at 1.0
-
+      // Use normalized volume (same as other sounds) - squish uses 1.0 multiplier
+      squishAudio.volume = Math.min(volume * volumeMultipliers.squish, 1.0);
       
       // Play the squish sound
       squishAudio.play().catch(error => {
         console.warn('Failed to play squish sound:', error);
       });
     }
-  }, [audioFiles, volume]);
+  }, [audioFiles, volume, volumeMultipliers]);
 
-  // Function to play weapon sound with reduced volume for successful pest hits
-  const playWeaponSoundReduced = useCallback((tool: Tool) => {
-    const audio = audioFiles[tool];
-    
-    if (audio) {
-      // Reset audio to beginning if it's already playing
-      audio.currentTime = 0;
-      
-      // Set volume to 0.5x for successful hits
-      audio.volume = volume * 0.5;
-      
-      // For chainsaw in pest control mode, make it shorter
-      if (tool === 'chainsaw' && gameMode === 'pest-control') {
-        // Play for a shorter duration
-        audio.play().catch(error => {
-          console.warn('Failed to play sound:', error);
-        });
-        
-        // Stop the sound after 0.5 seconds
-        setTimeout(() => {
-          audio.pause();
-          audio.currentTime = 0;
-        }, 500);
-      } else {
-        // Play the sound normally
-        audio.play().catch(error => {
-          console.warn('Failed to play sound:', error);
-        });
-      }
-    }
-  }, [audioFiles, volume, gameMode]);
-
-  return { startSound, stopSound, playSound, playSquishSound, playWeaponSoundReduced };
+  return { startSound, stopSound, playSound, playSquishSound };
 };
