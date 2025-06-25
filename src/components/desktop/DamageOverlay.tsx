@@ -310,7 +310,7 @@ const DamageOverlay: React.FC<DamageOverlayProps> = ({ effects, chainsawPaths, p
             d={path.path.map((point: { x: number; y: number }, index: number) => 
               `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`
             ).join(' ')}
-            stroke="#8B4513"
+            stroke="#000000"
             strokeWidth="3"
             fill="none"
             opacity="0.8"

@@ -11,8 +11,14 @@ export const useMouseHandlers = (
   setIsMouseDown: (down: boolean) => void,
   setChainsawPath: React.Dispatch<React.SetStateAction<{ x: number; y: number }[]>>,
   setChainsawPaths: React.Dispatch<React.SetStateAction<any[]>>,
-  desktopRef: React.RefObject<HTMLDivElement>
+  desktopRef: React.RefObject<HTMLDivElement>,
+  createDamageEffect?: (x: number, y: number, tool: Tool, lastFlamethrowerDamage: React.MutableRefObject<{ x: number; y: number } | null>, setDamageEffects: React.Dispatch<React.SetStateAction<any[]>>) => void,
+  setDamageEffects?: React.Dispatch<React.SetStateAction<any[]>>,
+  lastFlamethrowerDamage?: React.MutableRefObject<{ x: number; y: number } | null>
 ) => {
+  const damageIntervalRef = useRef<number | null>(null);
+  const lastDamageTimeRef = useRef<number>(0);
+
   // Keyboard weapon switching
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
@@ -30,6 +36,46 @@ export const useMouseHandlers = (
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
   }, []);
+
+  // Continuous damage effects while mouse is held down
+  useEffect(() => {
+    if (isMouseDown && gameMode === 'desktop-destroyer' && selectedTool === 'gun' && createDamageEffect && setDamageEffects && lastFlamethrowerDamage) {
+      const now = Date.now();
+      const timeSinceLastDamage = now - lastDamageTimeRef.current;
+      
+      // Gun fires continuously while held down
+      const gunInterval = 100; // 10 shots per second
+      
+      if (timeSinceLastDamage >= gunInterval) {
+        createDamageEffect(mousePosition.x, mousePosition.y, selectedTool, lastFlamethrowerDamage, setDamageEffects);
+        lastDamageTimeRef.current = now;
+      }
+
+      // Set up interval for continuous gun fire
+      damageIntervalRef.current = setInterval(() => {
+        const currentTime = Date.now();
+        const timeSinceLast = currentTime - lastDamageTimeRef.current;
+        
+        if (timeSinceLast >= gunInterval) {
+          createDamageEffect(mousePosition.x, mousePosition.y, selectedTool, lastFlamethrowerDamage, setDamageEffects);
+          lastDamageTimeRef.current = currentTime;
+        }
+      }, gunInterval);
+
+      return () => {
+        if (damageIntervalRef.current) {
+          clearInterval(damageIntervalRef.current);
+          damageIntervalRef.current = null;
+        }
+      };
+    } else {
+      // Clear interval when mouse is released or tool changes
+      if (damageIntervalRef.current) {
+        clearInterval(damageIntervalRef.current);
+        damageIntervalRef.current = null;
+      }
+    }
+  }, [isMouseDown, gameMode, selectedTool, mousePosition, createDamageEffect, setDamageEffects, lastFlamethrowerDamage]);
 
   // Track mouse position globally
   useEffect(() => {

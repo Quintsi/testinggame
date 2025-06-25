@@ -55,10 +55,11 @@ export const useDesktopInteraction = ({
   const desktopRef = useRef<HTMLDivElement>(null);
   const { createDamageEffect, createPestDamageEffect, getRandomPaintColor } = useDamageEffects();
   const { createParticles, createBugParticles } = useParticleEffects();
-  const { startSound, stopSound, playSound, playSquishSound } = useSoundEffects(volume / 100);
+  const { startSound, stopSound, playSound, playSquishSound, playWeaponSoundReduced } = useSoundEffects(volume / 100, gameMode);
   const { getWeaponHitbox, checkCollision } = useMouseHandlers(
     selectedTool, gameMode, mousePosition, isMouseDown, chainsawPath,
-    setMousePosition, setIsMouseDown, setChainsawPath, setChainsawPaths, desktopRef
+    setMousePosition, setIsMouseDown, setChainsawPath, setChainsawPaths, desktopRef,
+    createDamageEffect, setDamageEffects, lastFlamethrowerDamage
   );
 
   // Handle tool changes from keyboard
@@ -80,23 +81,23 @@ export const useDesktopInteraction = ({
 
     // Handle desktop destroyer mode
     if (gameMode === 'desktop-destroyer') {
-      if (selectedTool === 'chainsaw') setChainsawPath([{ x, y }]);
-      
-      // Check if weapon is individually muted
-      if (soundEnabled && !isWeaponMuted(selectedTool)) {
-        if (selectedTool === 'hammer') {
-          playSound(selectedTool);
-        } else if (selectedTool === 'chainsaw' || selectedTool === 'gun') {
-          startSound(selectedTool);
-        } else {
-          playSound(selectedTool);
-        }
+    if (selectedTool === 'chainsaw') setChainsawPath([{ x, y }]);
+    
+    // Check if weapon is individually muted
+    if (soundEnabled && !isWeaponMuted(selectedTool)) {
+      if (selectedTool === 'hammer') {
+        playSound(selectedTool);
+      } else if (selectedTool === 'chainsaw' || selectedTool === 'gun') {
+        startSound(selectedTool);
+      } else {
+        playSound(selectedTool);
       }
-      
-      // Create particles and damage effects only on mouse down (click-based, not time-based)
-      if (selectedTool !== 'chainsaw') {
-        createDamageEffect(x, y, selectedTool, lastFlamethrowerDamage, setDamageEffects);
-        createParticles(x, y, selectedTool, getRandomPaintColor, setParticles);
+    }
+    
+      // Create initial damage effect and particles on mouse down
+    if (selectedTool !== 'chainsaw') {
+      createDamageEffect(x, y, selectedTool, lastFlamethrowerDamage, setDamageEffects);
+      createParticles(x, y, selectedTool, getRandomPaintColor, setParticles);
       }
     }
     
@@ -129,10 +130,19 @@ export const useDesktopInteraction = ({
       const x = event.clientX - rect.left;
       const y = event.clientY - rect.top;
 
-      // Check collision with bugs
+      // Check collision with bugs using weapon hitbox and fallback distance check
+      const weaponHitbox = getWeaponHitbox(x, y, selectedTool);
       const hitBug = bugs.find(bug => {
-        const distance = Math.sqrt(Math.pow(x - bug.x, 2) + Math.pow(y - bug.y, 2));
-        return distance <= 20; // Bug hit radius
+        // Try weapon hitbox collision first
+        const hitboxCollision = checkCollision(weaponHitbox, bug.x, bug.y);
+        
+        // Fallback to distance check if hitbox collision fails
+        if (!hitboxCollision) {
+          const distance = Math.sqrt(Math.pow(x - bug.x, 2) + Math.pow(y - bug.y, 2));
+          return distance <= 30; // Slightly larger radius for fallback
+        }
+        
+        return hitboxCollision;
       });
 
       if (hitBug) {
@@ -141,9 +151,9 @@ export const useDesktopInteraction = ({
           // Successful kill
           killBug(hitBug.id);
           
-          // Play weapon sound
+          // Play weapon sound with reduced volume for successful hit
           if (soundEnabled && !isWeaponMuted(selectedTool)) {
-            playSound(selectedTool);
+            playWeaponSoundReduced(selectedTool);
           }
           
           // Play squish sound after a short delay
@@ -159,13 +169,18 @@ export const useDesktopInteraction = ({
           // Create particles for successful hit
           createBugParticles(x, y, selectedTool, getRandomPaintColor, setParticles);
         } else {
-          // Failed attempt
+          // Failed attempt - wrong weapon
           attemptKill(hitBug.id);
           
-          // Play weapon sound for failed attempt
-          if (soundEnabled && !isWeaponMuted(selectedTool)) {
-            playSound(selectedTool);
-          }
+          // No sound for wrong weapon attempts
+        }
+      } else {
+        // Check if there are any compatible pests in the game for this weapon
+        const compatiblePestExists = bugs.some(bug => bug.requiredWeapon === selectedTool);
+        
+        // Play weapon sound if there are compatible pests in the game (missed them)
+        if (compatiblePestExists && soundEnabled && !isWeaponMuted(selectedTool)) {
+          playSound(selectedTool);
         }
       }
     }
