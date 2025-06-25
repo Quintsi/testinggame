@@ -5,6 +5,7 @@ import ToolSidebar from './components/tools/ToolSidebar';
 import ParticleSystem from './components/tools/ParticleSystem';
 import GameModeSelector from './components/game/GameModeSelector';
 import PestControlOverlay from './components/game/PestControlOverlay';
+import { GameClockProvider } from './components/effects/GameClockProvider';
 import { InstructionText } from './components/ui/InstructionText';
 import { useGameState } from './hooks/useGameState';
 import { useDesktopInteraction } from './components/desktop/DesktopInteraction';
@@ -131,74 +132,76 @@ function App() {
   }, []);
 
   return (
-    <div className="h-screen w-screen bg-gray-900 overflow-hidden relative">
-      {/* Game Mode Selector - Hide during active pest control */}
-      {!shouldHideUI && (
-        <GameModeSelector currentMode={gameMode} onModeChange={handleModeChange} />
-      )}
+    <GameClockProvider>
+      <div className="h-screen w-screen bg-gray-900 overflow-hidden relative">
+        {/* Game Mode Selector - Hide during active pest control */}
+        {!shouldHideUI && (
+          <GameModeSelector currentMode={gameMode} onModeChange={handleModeChange} />
+        )}
 
-      {/* Tool Sidebar - Hide during active pest control */}
-      {!shouldHideUI && (
-        <ToolSidebar
-          tools={tools}
-          selectedTool={selectedTool}
-          onToolSelect={setSelectedTool}
-          onReset={resetDesktop}
-          soundEnabled={soundEnabled}
-          onSoundToggle={toggleSound}
-          volume={volume}
-          onVolumeChange={setVolume}
-          mutedWeapons={mutedWeapons}
-          onWeaponMuteToggle={toggleWeaponMute}
-        />
-      )}
-
-      {/* Desktop Environment */}
-      <div className="flex-1 relative">
-        <DesktopEnvironment
-          ref={desktopRef}
-          onClick={handleDesktopClick}
-          onMouseDown={handleDesktopMouseDown}
-          onMouseUp={handleDesktopMouseUp}
-          damageEffects={damageEffects}
-          chainsawPaths={chainsawPaths}
-          selectedTool={selectedTool}
-          gameMode={gameMode}
-          mousePosition={mousePosition}
-          bugs={gameMode === 'pest-control' ? bugs : undefined}
-        />
-        
-        {/* Pest Control Overlay */}
-        {gameMode === 'pest-control' && (
-          <PestControlOverlay
-            bugs={bugs}
-            gameStarted={gameStarted}
-            gameEnded={gameEnded}
-            score={score}
-            timeLeft={timeLeft}
-            missedAttempts={missedAttempts}
-            onStartGame={startGame}
-            onBugClick={() => {}} // Handled in desktop interaction
+        {/* Tool Sidebar - Hide during active pest control */}
+        {!shouldHideUI && (
+          <ToolSidebar
+            tools={tools}
             selectedTool={selectedTool}
-            mousePosition={mousePosition}
-            PEST_WEAPON_MAP={PEST_WEAPON_MAP}
+            onToolSelect={setSelectedTool}
+            onReset={resetDesktop}
+            soundEnabled={soundEnabled}
+            onSoundToggle={toggleSound}
+            volume={volume}
+            onVolumeChange={setVolume}
+            mutedWeapons={mutedWeapons}
+            onWeaponMuteToggle={toggleWeaponMute}
           />
         )}
-        
-        {/* Particle System */}
-        <ParticleSystem particles={particles} />
-      </div>
 
-      {/* Instructions - Hide during active pest control */}
-      {!shouldHideUI && (
-        <InstructionText
-          gameMode={gameMode}
-          gameStarted={gameStarted}
-          score={score}
-          soundEnabled={soundEnabled}
-        />
-      )}
-    </div>
+        {/* Desktop Environment */}
+        <div className="flex-1 relative">
+          <DesktopEnvironment
+            ref={desktopRef}
+            onClick={handleDesktopClick}
+            onMouseDown={handleDesktopMouseDown}
+            onMouseUp={handleDesktopMouseUp}
+            damageEffects={damageEffects}
+            chainsawPaths={chainsawPaths}
+            selectedTool={selectedTool}
+            gameMode={gameMode}
+            mousePosition={mousePosition}
+            bugs={gameMode === 'pest-control' ? bugs : undefined}
+          />
+          
+          {/* Pest Control Overlay */}
+          {gameMode === 'pest-control' && (
+            <PestControlOverlay
+              bugs={bugs}
+              gameStarted={gameStarted}
+              gameEnded={gameEnded}
+              score={score}
+              timeLeft={timeLeft}
+              missedAttempts={missedAttempts}
+              onStartGame={startGame}
+              onBugClick={() => {}} // Handled in desktop interaction
+              selectedTool={selectedTool}
+              mousePosition={mousePosition}
+              PEST_WEAPON_MAP={PEST_WEAPON_MAP}
+            />
+          )}
+          
+          {/* Particle System */}
+          <ParticleSystem particles={particles} />
+        </div>
+
+        {/* Instructions - Hide during active pest control */}
+        {!shouldHideUI && (
+          <InstructionText
+            gameMode={gameMode}
+            gameStarted={gameStarted}
+            score={score}
+            soundEnabled={soundEnabled}
+          />
+        )}
+      </div>
+    </GameClockProvider>
   );
 }
 

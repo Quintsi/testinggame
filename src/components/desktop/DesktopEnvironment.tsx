@@ -1,7 +1,9 @@
 import React, { forwardRef, useState, useEffect } from 'react';
 import { Folder, FileText, Image, Music, Video, Settings, Trash2 } from 'lucide-react';
 import DamageOverlay from './DamageOverlay';
+import LaserBeamRenderer from '../effects/LaserBeamRenderer';
 import { DamageEffect, ChainsawPathEffect, Tool, GameMode } from '../../types/game';
+import { useGameClockContext } from '../effects/GameClockProvider';
 
 interface DesktopEnvironmentProps {
   onClick?: (event: React.MouseEvent) => void;
@@ -17,13 +19,16 @@ interface DesktopEnvironmentProps {
 
 const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
   ({ onClick, onMouseDown, onMouseUp, damageEffects, chainsawPaths, selectedTool, gameMode, mousePosition, bugs }, ref) => {
-    const [laserGunImage, setLaserGunImage] = useState(1); // 1 or 2
-    const [gunImage, setGunImage] = useState(1); // 1 or 2
-    const [hammerImage, setHammerImage] = useState(1); // 1 or 2
-    const [flamethrowerImage, setFlamethrowerImage] = useState(1);
-    const [chainsawImage, setChainsawImage] = useState(1);
-    const [paintballImage, setPaintballImage] = useState(1);
+    const { weaponAnimations } = useGameClockContext();
     const [backgroundImage, setBackgroundImage] = useState('');
+    const [currentWeaponFrame, setCurrentWeaponFrame] = useState<Record<Tool, number>>({
+      hammer: 1,
+      gun: 1,
+      flamethrower: 1,
+      laser: 1,
+      paintball: 1,
+      chainsaw: 1,
+    });
 
     // Select random background image on component mount
     useEffect(() => {
@@ -37,30 +42,13 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
     }, []);
 
     const handleClick = (event: React.MouseEvent) => {
-      // Switch images on each click when respective tool is selected
-      if (selectedTool === 'laser') {
-        setLaserGunImage(prev => prev === 1 ? 2 : 1);
-      }
-      
-      if (selectedTool === 'gun') {
-        setGunImage(prev => prev === 1 ? 2 : 1);
-      }
-      
-      if (selectedTool === 'hammer') {
-        setHammerImage(prev => prev === 1 ? 2 : 1);
-      }
-
-      if (selectedTool === 'flamethrower') {
-        setFlamethrowerImage(prev => prev === 1 ? 2 : 1);
-      }
-
-      if (selectedTool === 'chainsaw') {
-        setChainsawImage(prev => prev === 1 ? 2 : 1);
-      }
-
-      if (selectedTool === 'paintball') {
-        setPaintballImage(prev => prev === 1 ? 2 : 1);
-      }
+      // Start weapon animation on click
+      weaponAnimations.startWeaponAnimation(selectedTool, (frame) => {
+        setCurrentWeaponFrame(prev => ({
+          ...prev,
+          [selectedTool]: frame,
+        }));
+      });
       
       // Call the original onClick handler
       if (onClick) {
@@ -69,34 +57,35 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
     };
 
     const handleMouseDown = (event: React.MouseEvent) => {
-      // Switch images on mouse down when respective tool is selected
-      if (selectedTool === 'laser') {
-        setLaserGunImage(prev => prev === 1 ? 2 : 1);
-      }
-      
-      if (selectedTool === 'gun') {
-        setGunImage(prev => prev === 1 ? 2 : 1);
-      }
-      
-      if (selectedTool === 'hammer') {
-        setHammerImage(prev => prev === 1 ? 2 : 1);
-      }
-
-      if (selectedTool === 'flamethrower') {
-        setFlamethrowerImage(prev => prev === 1 ? 2 : 1);
-      }
-
-      if (selectedTool === 'chainsaw') {
-        setChainsawImage(prev => prev === 1 ? 2 : 1);
-      }
-
-      if (selectedTool === 'paintball') {
-        setPaintballImage(prev => prev === 1 ? 2 : 1);
+      // Start weapon animation on mouse down for continuous weapons
+      if (selectedTool === 'gun' || selectedTool === 'flamethrower' || selectedTool === 'chainsaw') {
+        weaponAnimations.startWeaponAnimation(selectedTool, (frame) => {
+          setCurrentWeaponFrame(prev => ({
+            ...prev,
+            [selectedTool]: frame,
+          }));
+        });
       }
       
       // Call the original onMouseDown handler
       if (onMouseDown) {
         onMouseDown(event);
+      }
+    };
+
+    const handleMouseUp = (event: React.MouseEvent) => {
+      // Stop weapon animation on mouse up for continuous weapons
+      if (selectedTool === 'gun' || selectedTool === 'flamethrower' || selectedTool === 'chainsaw') {
+        weaponAnimations.stopWeaponAnimation(selectedTool);
+        setCurrentWeaponFrame(prev => ({
+          ...prev,
+          [selectedTool]: 1, // Reset to first frame
+        }));
+      }
+      
+      // Call the original onMouseUp handler
+      if (onMouseUp) {
+        onMouseUp(event);
       }
     };
 
@@ -111,23 +100,25 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
     };
 
     const getCurrentWeaponImage = () => {
+      const frame = currentWeaponFrame[selectedTool];
+      
       if (selectedTool === 'laser') {
-        return `/asset/weaponImage/fg${laserGunImage}.png`;
+        return `/asset/weaponImage/fg${frame}.png`;
       }
       if (selectedTool === 'gun') {
-        return `/asset/weaponImage/g${gunImage}.png`;
+        return `/asset/weaponImage/g${frame}.png`;
       }
       if (selectedTool === 'hammer') {
-        return `/asset/weaponImage/h${hammerImage}.png`;
+        return `/asset/weaponImage/h${frame}.png`;
       }
       if (selectedTool === 'flamethrower') {
-        return `/asset/weaponImage/ft${flamethrowerImage}.png`;
+        return `/asset/weaponImage/ft${frame}.png`;
       }
       if (selectedTool === 'chainsaw') {
-        return `/asset/weaponImage/cs${chainsawImage}.png`; 
+        return `/asset/weaponImage/cs${frame}.png`; 
       }
       if (selectedTool === 'paintball') {
-        return `/asset/weaponImage/pbg${paintballImage}.png`; 
+        return `/asset/weaponImage/pbg${frame}.png`; 
       }
       return '';
     };
@@ -224,7 +215,7 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
         className={`relative w-full h-screen overflow-hidden ${getCursor()}`}
         onClick={handleClick}
         onMouseDown={handleMouseDown}
-        onMouseUp={onMouseUp}
+        onMouseUp={handleMouseUp}
         style={{
           backgroundImage: backgroundImage ? `url("${backgroundImage}")` : 'linear-gradient(to bottom right, #3B82F6, #8B5CF6)',
           backgroundSize: 'cover',
@@ -253,6 +244,9 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
               />
           </div>
         )}
+
+        {/* Laser Beam Renderer */}
+        <LaserBeamRenderer />
 
         {/* Weapon Hitbox Visualization (for debugging - can be removed) */}
         {gameMode === 'pest-control' && (

@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { Tool, GameMode } from '../../types/game';
 import { useDamageEffects } from '../../hooks/useDamageEffects';
-import { useParticleEffects } from '../../hooks/useParticleEffects';
 import { useMouseHandlers } from '../../hooks/useMouseHandlers';
 import { useSoundEffects } from '../../hooks/useSoundEffects';
+import { useFlamethrowerEffect } from '../../hooks/useFlamethrowerEffect';
+import { useGameClockContext } from '../effects/GameClockProvider';
 
 export const useDesktopInteraction = (
   selectedTool: Tool,
@@ -28,12 +29,42 @@ export const useDesktopInteraction = (
 ) => {
   const desktopRef = useRef<HTMLDivElement>(null);
   const { createDamageEffect, getRandomPaintColor } = useDamageEffects();
-  const { createParticles, createPaintballParticles, createBugParticles } = useParticleEffects();
   const { startSound, stopSound, playSound } = useSoundEffects(volume / 100);
   const { getWeaponHitbox, checkCollision } = useMouseHandlers(
     selectedTool, gameMode, mousePosition, isMouseDown, chainsawPath,
     setMousePosition, setIsMouseDown, setChainsawPath, setChainsawPaths, desktopRef
   );
+  const { particleSystem, laserEffect } = useGameClockContext();
+
+  // Flamethrower effect using game clock
+  const { isFlamethrowerActive } = useFlamethrowerEffect(
+    selectedTool,
+    isMouseDown,
+    mousePosition,
+    (x, y) => {
+      // Create flamethrower particles using the particle system
+      const flamethrowerParticles = Array.from({ length: 8 }, (_, i) => ({
+        x, y,
+        tool: 'flamethrower' as Tool,
+        angle: (Math.PI * 2 * i) / 8 + (Math.random() - 0.5) * 0.5,
+        speed: Math.random() * 5 + 2,
+        life: 1,
+      }));
+      
+      particleSystem.addParticles(flamethrowerParticles);
+      
+      // Create damage effect for flamethrower
+      if (gameMode === 'desktop-destroyer') {
+        createDamageEffect(x, y, selectedTool, { current: null }, setDamageEffects);
+      }
+    }
+  );
+
+  // Subscribe to particle system updates
+  useEffect(() => {
+    const unsubscribe = particleSystem.subscribeToParticles(setParticles);
+    return unsubscribe;
+  }, [particleSystem, setParticles]);
 
   // Handle tool changes from keyboard
   useEffect(() => {
@@ -66,11 +97,33 @@ export const useDesktopInteraction = (
       }
     }
     
-    if (selectedTool !== 'chainsaw') {
+    // Handle different weapons
+    if (selectedTool === 'laser') {
+      // Fire laser beam using game clock system
+      const angle = Math.random() * Math.PI * 2; // Random angle for now
+      laserEffect.fireLaser(x, y, angle, 200);
+      
+      // Create damage effect
       createDamageEffect(x, y, selectedTool, { current: null }, setDamageEffects);
-      createParticles(x, y, selectedTool, getRandomPaintColor, setParticles);
+    } else if (selectedTool !== 'chainsaw' && selectedTool !== 'flamethrower') {
+      // Regular weapons (hammer, gun, paintball)
+      createDamageEffect(x, y, selectedTool, { current: null }, setDamageEffects);
+      
+      // Create particles using particle system
+      const weaponParticles = Array.from({ length: 8 }, (_, i) => ({
+        x, y,
+        tool: selectedTool,
+        angle: (Math.PI * 2 * i) / 8 + (Math.random() - 0.5) * 0.5,
+        speed: Math.random() * 5 + 2,
+        life: 1,
+        color: selectedTool === 'paintball' ? getRandomPaintColor() : undefined,
+        size: selectedTool === 'paintball' ? Math.random() * 8 + 4 : undefined,
+      }));
+      
+      particleSystem.addParticles(weaponParticles);
     }
-  }, [selectedTool, soundEnabled, isWeaponMuted, startSound, playSound, gameMode, createDamageEffect, createParticles, getRandomPaintColor, setDamageEffects, setParticles, setIsMouseDown, setChainsawPath]);
+    // Flamethrower is handled by the useFlamethrowerEffect hook
+  }, [selectedTool, soundEnabled, isWeaponMuted, startSound, playSound, gameMode, createDamageEffect, getRandomPaintColor, setDamageEffects, setIsMouseDown, setChainsawPath, particleSystem, laserEffect]);
 
   const handleDesktopMouseUp = useCallback(() => {
     setIsMouseDown(false);
@@ -83,17 +136,46 @@ export const useDesktopInteraction = (
     }
   }, [selectedTool, soundEnabled, isWeaponMuted, stopSound, setIsMouseDown, setChainsawPath]);
 
-  // Continuous firing effect for gun
+  // Continuous firing effect for gun using game clock
   useEffect(() => {
     if (!isMouseDown || selectedTool !== 'gun' || gameMode !== 'desktop-destroyer') return;
 
-    const interval = setInterval(() => {
-      createDamageEffect(mousePosition.x, mousePosition.y, selectedTool, { current: null }, setDamageEffects);
-      createParticles(mousePosition.x, mousePosition.y, selectedTool, getRandomPaintColor, setParticles);
-    }, 10); 
+    let lastFireTime = 0;
+    const fireRate = 100; // 100ms between shots
 
-    return () => clearInterval(interval);
-  }, [isMouseDown, selectedTool, gameMode, mousePosition, createDamageEffect, createParticles, getRandomPaintColor, setDamageEffects, setParticles]);
+    const unsubscribe = particleSystem.subscribeToParticles(() => {
+      // This subscription is just to ensure the particle system is active
+      // The actual firing logic is handled by a separate game clock subscriber
+    });
+
+    // Subscribe to game clock for continuous gun firing
+    const gameClockUnsubscribe = particleSystem.gameClock?.subscribe({
+      id: 'gun-continuous-fire',
+      callback: (deltaTime, totalTime) => {
+        if (totalTime - lastFireTime >= fireRate) {
+          createDamageEffect(mousePosition.x, mousePosition.y, selectedTool, { current: null }, setDamageEffects);
+          
+          const gunParticles = Array.from({ length: 6 }, (_, i) => ({
+            x: mousePosition.x, 
+            y: mousePosition.y,
+            tool: selectedTool,
+            angle: (Math.PI * 2 * i) / 6 + (Math.random() - 0.5) * 0.3,
+            speed: Math.random() * 4 + 2,
+            life: 1,
+          }));
+          
+          particleSystem.addParticles(gunParticles);
+          lastFireTime = totalTime;
+        }
+      },
+      priority: 4,
+    });
+
+    return () => {
+      unsubscribe();
+      gameClockUnsubscribe?.();
+    };
+  }, [isMouseDown, selectedTool, gameMode, mousePosition, createDamageEffect, setDamageEffects, particleSystem]);
 
   const handleDesktopClick = useCallback((event: React.MouseEvent) => {
     // Handle pest control mode
@@ -126,7 +208,27 @@ export const useDesktopInteraction = (
         if (killSuccessful) {
           // Successful kill with correct weapon
           if (soundEnabled && !isWeaponMuted(selectedTool)) playSound(selectedTool);
-          createBugParticles(hitBug.x, hitBug.y, selectedTool, getRandomPaintColor, setParticles);
+          
+          // Create bug kill particles using particle system
+          const bugParticles = Array.from({ length: 8 }, (_, i) => ({
+            x: hitBug.x, 
+            y: hitBug.y,
+            tool: selectedTool,
+            angle: (Math.PI * 2 * i) / 8,
+            speed: Math.random() * 3 + 1,
+            life: 1,
+            color: selectedTool === 'paintball' ? getRandomPaintColor() : undefined,
+            size: selectedTool === 'paintball' ? Math.random() * 6 + 3 : undefined,
+          }));
+          
+          particleSystem.addParticles(bugParticles);
+          
+          // Fire laser beam for laser weapon
+          if (selectedTool === 'laser') {
+            const angle = Math.atan2(hitBug.y - y, hitBug.x - x);
+            laserEffect.fireLaser(x, y, angle, Math.sqrt(Math.pow(hitBug.x - x, 2) + Math.pow(hitBug.y - y, 2)));
+          }
+          
           console.log(`Successfully killed ${hitBug.type} with ${selectedTool}`);
         } else {
           // Wrong weapon used - play error sound or visual feedback
@@ -142,7 +244,7 @@ export const useDesktopInteraction = (
 
     // Handle desktop destruction mode - only for pest control, no damage/particles on click
     if (gameMode !== 'desktop-destroyer') return;
-  }, [selectedTool, soundEnabled, isWeaponMuted, playSound, gameMode, gameStarted, bugs, attemptKill, getWeaponHitbox, checkCollision, createBugParticles, getRandomPaintColor, setParticles]);
+  }, [selectedTool, soundEnabled, isWeaponMuted, playSound, gameMode, gameStarted, bugs, attemptKill, getWeaponHitbox, checkCollision, getRandomPaintColor, particleSystem, laserEffect]);
 
   // Global mouse up handler to stop sounds when mouse is released outside desktop
   useEffect(() => {
