@@ -15,6 +15,7 @@ const GameClockContext = createContext<GameClockContextType | null>(null);
 
 export const useGameClockContext = () => {
   const context = useContext(GameClockContext);
+  console.log("useGameClockContext called", context);
   if (!context) {
     throw new Error('useGameClockContext must be used within a GameClockProvider');
   }
@@ -26,6 +27,7 @@ interface GameClockProviderProps {
 }
 
 export const GameClockProvider: React.FC<GameClockProviderProps> = ({ children }) => {
+  console.log("GameClockProvider initialized");
   const gameClock = useGameClock(60);
   const weaponAnimations = useWeaponAnimations();
   const particleSystem = useParticleSystem();
