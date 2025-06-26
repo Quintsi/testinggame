@@ -1,6 +1,6 @@
 import React from 'react';
 import { Monitor, Bug } from 'lucide-react';
-import { GameMode } from '../types/game';
+import { GameMode } from '../../types/game';
 
 interface GameModeSelectorProps {
   currentMode: GameMode;
@@ -19,7 +19,7 @@ const GameModeSelector: React.FC<GameModeSelectorProps> = ({ currentMode, onMode
       id: 'pest-control' as GameMode,
       name: 'Pest Control',
       icon: Bug,
-      description: 'Hunt down bugs on the screen'
+      description: 'Hunt down bugs on the screen (Login required)'
     }
   ];
 

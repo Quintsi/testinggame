@@ -1,16 +1,23 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Hammer, Zap, Flame, Paintbrush, Target, Fan } from 'lucide-react';
 import DesktopContainer from './components/desktop/DesktopContainer';
 import ToolSidebar from './components/tools/ToolSidebar';
 import ParticleSystem from './components/tools/ParticleSystem';
 import GameModeSelector from './components/game/GameModeSelector';
 import PestControlOverlay from './components/game/PestControlOverlay';
+import LoginButton from './components/auth/LoginButton';
+import LeaderboardModal from './components/auth/LeaderboardModal';
+import AuthGuard from './components/auth/AuthGuard';
 import { InstructionText } from './components/ui/InstructionText';
 import { GameClockProvider } from './components/effects/GameClockProvider'
 import { useGameState } from './hooks/useGameState';
+import { useAuth } from './hooks/useAuth';
 import { Tool } from './types/game';
 
 function App() {
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const { isAuthenticated } = useAuth();
+
   const {
     // State
     selectedTool,
@@ -30,6 +37,7 @@ function App() {
     score,
     timeLeft,
     missedAttempts,
+    userHighScore,
     PEST_WEAPON_MAP,
     mutedWeapons,
     pestDamageEffects,
@@ -71,6 +79,9 @@ function App() {
   // Determine if we should hide UI elements (during active pest control gameplay)
   const shouldHideUI = gameMode === 'pest-control' && gameStarted && !gameEnded;
 
+  // Check if pest control mode requires authentication
+  const isPestControlModeRestricted = gameMode === 'pest-control' && !isAuthenticated;
+
   useEffect(() => {
     // Clean up old damage effects periodically
     const cleanup = setInterval(() => {
@@ -109,6 +120,15 @@ function App() {
   return (
     <GameClockProvider>
       <div className="h-screen w-screen bg-gray-900 overflow-hidden relative">
+        {/* Login Button - Always visible */}
+        <LoginButton onShowLeaderboard={() => setShowLeaderboard(true)} />
+
+        {/* Leaderboard Modal */}
+        <LeaderboardModal 
+          isOpen={showLeaderboard} 
+          onClose={() => setShowLeaderboard(false)} 
+        />
+
         {/* Game Mode Selector - Hide during active pest control */}
         {!shouldHideUI && (
           <GameModeSelector currentMode={gameMode} onModeChange={handleModeChange} />
@@ -132,35 +152,82 @@ function App() {
 
         {/* Desktop Environment */}
         <div className="flex-1 relative">
-          <DesktopContainer
-            selectedTool={selectedTool}
-            gameMode={gameMode}
-            mousePosition={mousePosition}
-            isMouseDown={isMouseDown}
-            chainsawPath={chainsawPath}
-            bugs={bugs}
-            gameStarted={gameStarted}
-            damageEffects={damageEffects}
-            pestDamageEffects={pestDamageEffects}
-            chainsawPaths={chainsawPaths}
-            setMousePosition={setMousePosition}
-            setIsMouseDown={setIsMouseDown}
-            setChainsawPath={setChainsawPath}
-            setChainsawPaths={setChainsawPaths}
-            setDamageEffects={setDamageEffects}
-            setPestDamageEffects={setPestDamageEffects}
-            setParticles={setParticles}
-            setSelectedTool={setSelectedTool}
-            killBug={killBug}
-            attemptKill={attemptKill}
-            volume={volume}
-            soundEnabled={soundEnabled}
-            isWeaponMuted={isWeaponMuted}
-            lastFlamethrowerDamage={lastFlamethrowerDamage}
-          />
+          {/* Show auth guard only for pest control mode when not authenticated */}
+          {isPestControlModeRestricted ? (
+            <AuthGuard
+              fallback={
+                <div className="flex items-center justify-center h-full bg-gray-900">
+                  <div className="text-center max-w-md mx-auto p-8">
+                    <div className="text-6xl mb-6">🐛</div>
+                    <h2 className="text-2xl font-bold text-white mb-4">Pest Control Mode</h2>
+                    <p className="text-gray-400 mb-8">
+                      Sign in with your Google account to play Pest Control mode and compete on the global leaderboard!
+                    </p>
+                    <div className="text-sm text-gray-500">
+                      Desktop Destroyer mode is available without signing in.
+                    </div>
+                  </div>
+                </div>
+              }
+            >
+              <DesktopContainer
+                selectedTool={selectedTool}
+                gameMode={gameMode}
+                mousePosition={mousePosition}
+                isMouseDown={isMouseDown}
+                chainsawPath={chainsawPath}
+                bugs={bugs}
+                gameStarted={gameStarted}
+                damageEffects={damageEffects}
+                pestDamageEffects={pestDamageEffects}
+                chainsawPaths={chainsawPaths}
+                setMousePosition={setMousePosition}
+                setIsMouseDown={setIsMouseDown}
+                setChainsawPath={setChainsawPath}
+                setChainsawPaths={setChainsawPaths}
+                setDamageEffects={setDamageEffects}
+                setPestDamageEffects={setPestDamageEffects}
+                setParticles={setParticles}
+                setSelectedTool={setSelectedTool}
+                killBug={killBug}
+                attemptKill={attemptKill}
+                volume={volume}
+                soundEnabled={soundEnabled}
+                isWeaponMuted={isWeaponMuted}
+                lastFlamethrowerDamage={lastFlamethrowerDamage}
+              />
+            </AuthGuard>
+          ) : (
+            <DesktopContainer
+              selectedTool={selectedTool}
+              gameMode={gameMode}
+              mousePosition={mousePosition}
+              isMouseDown={isMouseDown}
+              chainsawPath={chainsawPath}
+              bugs={bugs}
+              gameStarted={gameStarted}
+              damageEffects={damageEffects}
+              pestDamageEffects={pestDamageEffects}
+              chainsawPaths={chainsawPaths}
+              setMousePosition={setMousePosition}
+              setIsMouseDown={setIsMouseDown}
+              setChainsawPath={setChainsawPath}
+              setChainsawPaths={setChainsawPaths}
+              setDamageEffects={setDamageEffects}
+              setPestDamageEffects={setPestDamageEffects}
+              setParticles={setParticles}
+              setSelectedTool={setSelectedTool}
+              killBug={killBug}
+              attemptKill={attemptKill}
+              volume={volume}
+              soundEnabled={soundEnabled}
+              isWeaponMuted={isWeaponMuted}
+              lastFlamethrowerDamage={lastFlamethrowerDamage}
+            />
+          )}
           
-          {/* Pest Control Overlay */}
-          {gameMode === 'pest-control' && (
+          {/* Pest Control Overlay - Only show when authenticated or in desktop destroyer mode */}
+          {gameMode === 'pest-control' && !isPestControlModeRestricted && (
             <PestControlOverlay
               bugs={bugs}
               gameStarted={gameStarted}
@@ -168,6 +235,7 @@ function App() {
               score={score}
               timeLeft={timeLeft}
               missedAttempts={missedAttempts}
+              userHighScore={userHighScore}
               onStartGame={startGame}
               onBugClick={() => {}} // Handled in desktop interaction
               selectedTool={selectedTool}

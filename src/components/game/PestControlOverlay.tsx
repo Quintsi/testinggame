@@ -1,5 +1,6 @@
 import React from 'react';
 import { Bug as BugType, Tool, PestType } from '../../types/game';
+import { useAuth } from '../../hooks/useAuth';
 
 interface PestControlOverlayProps {
   bugs: BugType[];
@@ -8,6 +9,7 @@ interface PestControlOverlayProps {
   score: number;
   timeLeft: number;
   missedAttempts: number;
+  userHighScore: number;
   onStartGame: () => void;
   onBugClick: (bugId: number, event: React.MouseEvent) => void;
   selectedTool: Tool;
@@ -22,9 +24,11 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
   score,
   timeLeft,
   missedAttempts,
+  userHighScore,
   onStartGame, 
   PEST_WEAPON_MAP
 }) => {
+  const { isAuthenticated, user } = useAuth();
 
   const getBugImage = (pestType: PestType) => {
     switch (pestType) {
@@ -107,6 +111,11 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
               <div className="text-sm font-semibold text-green-400">
                 Score: {score}
               </div>
+              {userHighScore > 0 && (
+                <div className="text-xs text-blue-400">
+                  Best: {userHighScore}
+                </div>
+              )}
               {missedAttempts > 0 && (
                 <div className="text-xs text-red-400">
                   Missed: {missedAttempts}
@@ -123,6 +132,29 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
           <div className="text-center max-w-2xl mx-auto px-4">
             <h2 className="text-4xl font-bold text-white mb-4">Strategic Pest Control</h2>
             <p className="text-xl text-gray-300 mb-4">Each pest requires a specific weapon to kill!</p>
+            
+            {/* Authentication Status */}
+            {isAuthenticated && user ? (
+              <div className="bg-green-600/20 border border-green-500/30 rounded-lg p-3 mb-6">
+                <div className="flex items-center justify-center space-x-2 text-green-400">
+                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  <span className="text-sm font-medium">
+                    Signed in as {user.displayName} - Scores will be saved!
+                  </span>
+                </div>
+                {userHighScore > 0 && (
+                  <div className="text-green-300 text-sm mt-1">
+                    Your best score: {userHighScore} pests
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="bg-yellow-600/20 border border-yellow-500/30 rounded-lg p-3 mb-6">
+                <div className="text-yellow-400 text-sm">
+                  Sign in with Google to save your scores and compete on the leaderboard!
+                </div>
+              </div>
+            )}
             
             {/* Weapon Guide */}
             <div className="bg-gray-800/90 rounded-xl p-6 mb-8">
@@ -172,6 +204,22 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
                 </div>
               )}
             </div>
+
+            {/* High Score Display */}
+            {isAuthenticated && (
+              <div className="mb-6">
+                {score > userHighScore ? (
+                  <div className="bg-yellow-600/20 border border-yellow-500/30 rounded-lg p-3">
+                    <div className="text-yellow-400 font-bold text-lg">🎉 New Personal Best!</div>
+                    <div className="text-yellow-300 text-sm">Previous best: {userHighScore}</div>
+                  </div>
+                ) : userHighScore > 0 ? (
+                  <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-3">
+                    <div className="text-blue-400 text-sm">Your best score: {userHighScore} pests</div>
+                  </div>
+                ) : null}
+              </div>
+            )}
 
             {/* Performance Message */}
             <div className="mb-6">

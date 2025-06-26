@@ -1,5 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Bug, PestType, Tool } from '../types/game';
+import { useAuth } from './useAuth';
+import { useLeaderboard } from './useLeaderboard';
 
 // Define pest-weapon relationships
 const PEST_WEAPON_MAP: Record<PestType, Tool> = {
@@ -21,10 +23,28 @@ export const usePestControl = () => {
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(30);
   const [missedAttempts, setMissedAttempts] = useState(0);
+  const [userHighScore, setUserHighScore] = useState(0);
+
+  const { user, isAuthenticated } = useAuth();
+  const { submitScore, getUserHighScore } = useLeaderboard();
 
   const getRandomPestType = useCallback((): PestType => {
     return PEST_TYPES[Math.floor(Math.random() * PEST_TYPES.length)];
   }, []);
+
+  // Load user's high score when authenticated
+  useEffect(() => {
+    const loadUserHighScore = async () => {
+      if (user && isAuthenticated) {
+        const highScore = await getUserHighScore(user);
+        setUserHighScore(highScore);
+      } else {
+        setUserHighScore(0);
+      }
+    };
+
+    loadUserHighScore();
+  }, [user, isAuthenticated, getUserHighScore]);
 
   const createBug = useCallback(() => {
     // Use full screen dimensions when game is active (no UI elements to avoid)
@@ -102,12 +122,26 @@ export const usePestControl = () => {
     setHiddenBug(secondBug);
   }, [createBug]);
 
-  const endGame = useCallback(() => {
+  const endGame = useCallback(async () => {
     setGameStarted(false);
     setGameEnded(true);
     setBugs([]);
     setHiddenBug(null);
-  }, []);
+
+    // Submit score to leaderboard if user is authenticated
+    if (user && isAuthenticated && score > 0) {
+      try {
+        await submitScore(user, score);
+        
+        // Update local high score if this score is higher
+        if (score > userHighScore) {
+          setUserHighScore(score);
+        }
+      } catch (error) {
+        console.error('Failed to submit score:', error);
+      }
+    }
+  }, [user, isAuthenticated, score, userHighScore, submitScore]);
 
   const attemptKill = useCallback((bugId: number, weaponUsed: Tool) => {
     const targetBug = bugs.find(bug => bug.id === bugId);
@@ -183,6 +217,7 @@ export const usePestControl = () => {
     score,
     timeLeft,
     missedAttempts,
+    userHighScore,
     startGame,
     killBug,
     attemptKill,

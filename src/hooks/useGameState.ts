@@ -26,6 +26,7 @@ export const useGameState = () => {
     score, 
     timeLeft, 
     missedAttempts,
+    userHighScore,
     startGame: startPestGame, 
     killBug, 
     attemptKill,
@@ -91,6 +92,7 @@ export const useGameState = () => {
     score,
     timeLeft,
     missedAttempts,
+    userHighScore,
     PEST_WEAPON_MAP,
     mutedWeapons,
     
