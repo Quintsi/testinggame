@@ -15,6 +15,8 @@ import { useAuth } from './hooks/useAuth';
 import { Tool } from './types/game';
 
 function App() {
+  console.log('App component is loading...'); // Debug log
+  
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const { isAuthenticated } = useAuth();
 
