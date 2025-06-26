@@ -28,7 +28,7 @@ export const useDamageEffects = () => {
           Math.pow(x - lastFlamethrowerDamage.current.x, 2) + 
           Math.pow(y - lastFlamethrowerDamage.current.y, 2)
         );
-        if (distance < 100) return;
+        if (distance < 20) return;
       }
       lastFlamethrowerDamage.current = { x, y };
     }

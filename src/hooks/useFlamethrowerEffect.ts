@@ -21,7 +21,7 @@ export const useFlamethrowerEffect = (
   const flamethrowerStateRef = useRef<FlamethrowerState>({
     isActive: false,
     lastEmissionTime: 0,
-    emissionRate: 15, // 15 particles per second
+    emissionRate: 60, // Increased to 60 particles per second for very fast damage effects
     lastPosition: { x: 0, y: 0 },
     fixedPosition: null,
   });
@@ -47,9 +47,14 @@ export const useFlamethrowerEffect = (
         ? state.fixedPosition 
         : state.lastPosition;
       
-      console.log('Flamethrower emitting particles at:', emissionPosition.x, emissionPosition.y);
+      // Add some randomization to create a spread pattern
+      const randomOffset = 15; // pixels of random spread
+      const finalX = emissionPosition.x + (Math.random() - 0.5) * randomOffset;
+      const finalY = emissionPosition.y + (Math.random() - 0.5) * randomOffset;
+      
+      console.log('Flamethrower emitting particles at:', finalX, finalY);
       // Emit particles at the determined position
-      onEmitParticles(emissionPosition.x, emissionPosition.y);
+      onEmitParticles(finalX, finalY);
       state.lastEmissionTime = totalTime;
     }
   }, [onEmitParticles, gameMode]);
@@ -82,6 +87,8 @@ export const useFlamethrowerEffect = (
       // Set fixed position for desktop destroyer mode
       if (gameMode === 'desktop-destroyer') {
         state.fixedPosition = { ...mousePosition };
+        // Create immediate damage effect when starting
+        onEmitParticles(mousePosition.x, mousePosition.y);
       } else {
         state.fixedPosition = null;
       }
@@ -97,7 +104,7 @@ export const useFlamethrowerEffect = (
       }
       // For desktop destroyer, keep using the fixed position set when starting
     }
-  }, [selectedTool, isMouseDown, mousePosition, gameMode]);
+  }, [selectedTool, isMouseDown, mousePosition, gameMode, onEmitParticles]);
 
   const isFlamethrowerActive = useCallback(() => {
     return flamethrowerStateRef.current.isActive;
