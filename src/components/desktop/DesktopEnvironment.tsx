@@ -1,5 +1,4 @@
 import React, { forwardRef, useState, useEffect } from 'react';
-import { Folder, FileText, Image, Music, Video, Settings, Trash2 } from 'lucide-react';
 import DamageOverlay from './DamageOverlay';
 import LaserBeamRenderer from '../effects/LaserBeamRenderer';
 import { DamageEffect, ChainsawPathEffect, Tool, GameMode, PestDamageEffect } from '../../types/game';

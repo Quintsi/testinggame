@@ -1,6 +1,10 @@
 import { useEffect, useRef, useCallback } from 'react';
+<<<<<<< Updated upstream
 import { useGameClockContext } from '../components/effects/GameClockProvider';
 import { Tool } from '../types/game';
+=======
+import { useGameClock } from './useGameClock';
+>>>>>>> Stashed changes
 
 export interface LaserBeam {
   id: number;

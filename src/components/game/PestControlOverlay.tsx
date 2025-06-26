@@ -23,9 +23,6 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
   timeLeft,
   missedAttempts,
   onStartGame, 
-  onBugClick,
-  selectedTool,
-  mousePosition,
   PEST_WEAPON_MAP
 }) => {
 

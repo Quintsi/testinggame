@@ -16,7 +16,7 @@ export const useParticleSystem = () => {
   const callbacksRef = useRef<Set<(particles: Particle[]) => void>>(new Set());
 
   // Particle physics update
-  const updateParticles = useCallback((deltaTime: number, totalTime: number) => {
+  const updateParticles = useCallback((deltaTime: number) => {
     const system = particleSystemRef.current;
     const deltaSeconds = deltaTime / 1000; // Convert to seconds for physics
 

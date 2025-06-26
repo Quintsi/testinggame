@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Hammer, Zap, Flame, Paintbrush, RotateCcw, Target, Fan } from 'lucide-react';
+import { Hammer, Zap, Flame, Paintbrush, Target, Fan } from 'lucide-react';
 import DesktopContainer from './components/desktop/DesktopContainer';
 import ToolSidebar from './components/tools/ToolSidebar';
 import ParticleSystem from './components/tools/ParticleSystem';

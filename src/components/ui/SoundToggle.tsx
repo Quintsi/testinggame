@@ -7,7 +7,7 @@ interface SoundToggleProps {
   onToggle: () => void;
 }
 
-const SoundToggle: React.FC<SoundToggleProps> = ({ soundEnabled, volume, onToggle }) => {
+const SoundToggle: React.FC<SoundToggleProps> = ({ volume, onToggle }) => {
   // Show mute icon when volume is 0, unmute icon when volume > 0
   const isMuted = volume === 0;
   

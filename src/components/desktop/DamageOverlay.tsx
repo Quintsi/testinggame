@@ -17,10 +17,6 @@ const DamageOverlay: React.FC<DamageOverlayProps> = ({ effects, chainsawPaths, p
       zIndex: 10,
     };
 
-    // Calculate time since effect was created
-    const timeSinceCreation = Date.now() - effect.timestamp;
-    const isFlamethrowerOld = effect.tool === 'flamethrower' && timeSinceCreation > 3000;
-
     switch (effect.tool) {
       case 'hammer':
         return {
@@ -43,7 +39,7 @@ const DamageOverlay: React.FC<DamageOverlayProps> = ({ effects, chainsawPaths, p
           border: '2px solid rgba(139,69,19,0.6)',
         };
       
-      case 'flamethrower':
+      case 'flamethrower': {
         // Create random burn mark shape
         const burnMarkId = effect.id;
         const randomSeed = burnMarkId % 1000; // Use effect ID for consistent randomness
@@ -72,6 +68,7 @@ const DamageOverlay: React.FC<DamageOverlayProps> = ({ effects, chainsawPaths, p
           clipPath: clipPath,
           opacity: 0.8,
         };
+      }
       
       case 'laser':
         return {
@@ -84,7 +81,7 @@ const DamageOverlay: React.FC<DamageOverlayProps> = ({ effects, chainsawPaths, p
           transform: `rotate(${Math.random() * 360}deg)`,
         };
       
-      case 'paintball':
+      case 'paintball': {
         // Create random water splash shape with random color
         const splashId = effect.id;
         const splashSeed = splashId % 1000; // Use effect ID for consistent randomness
@@ -113,6 +110,7 @@ const DamageOverlay: React.FC<DamageOverlayProps> = ({ effects, chainsawPaths, p
           clipPath: splashClipPath,
           opacity: 0.8,
         };
+      }
 
       case 'chainsaw':
         // Chainsaw uses path drawing instead of circular effects
