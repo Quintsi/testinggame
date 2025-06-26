@@ -1,6 +1,6 @@
 import React from 'react';
-import { X, ArrowUpDown, ArrowUp, ArrowDown, Trophy, Calendar, Target } from 'lucide-react';
-import { useUserScoreHistory, ScoreHistoryEntry, SortField } from '../../hooks/useUserScoreHistory';
+import { X, Trophy, Calendar, Target } from 'lucide-react';
+import { useUserScoreHistory } from '../../hooks/useUserScoreHistory';
 import { User } from 'firebase/auth';
 
 interface UserProfileModalProps {
@@ -13,10 +13,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose, us
   const { 
     scoreHistory, 
     loading, 
-    error, 
-    sortField, 
-    sortOrder, 
-    handleSort 
+    error 
   } = useUserScoreHistory(user);
 
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -33,24 +30,6 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose, us
       hour: '2-digit',
       minute: '2-digit'
     }).format(date);
-  };
-
-  const formatDuration = (seconds?: number) => {
-    if (!seconds) return '-';
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
-
-  const getSortIcon = (field: SortField) => {
-    if (sortField !== field) {
-      return <ArrowUpDown className="w-4 h-4" />;
-    }
-    return sortOrder === 'asc' ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />;
-  };
-
-  const getGameModeIcon = (gameMode: string) => {
-    return gameMode === 'pest-control' ? <Target className="w-4 h-4" /> : <Trophy className="w-4 h-4" />;
   };
 
   const getGameModeLabel = (gameMode: string) => {
@@ -99,7 +78,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose, us
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-white mb-2">Score History</h3>
             <p className="text-gray-400 text-sm">
-              Your recent game scores and performance statistics
+              Your recent game scores (sorted by date)
             </p>
           </div>
 
@@ -125,35 +104,24 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose, us
                 <thead>
                   <tr className="border-b border-gray-700">
                     <th className="text-left py-3 px-4 text-gray-300 font-medium">
-                      <button
-                        onClick={() => handleSort('date')}
-                        className="flex items-center space-x-1 hover:text-white transition-colors duration-200"
-                      >
+                      <div className="flex items-center space-x-1">
                         <Calendar className="w-4 h-4" />
                         <span>Date</span>
-                        {getSortIcon('date')}
-                      </button>
+                      </div>
                     </th>
                     <th className="text-left py-3 px-4 text-gray-300 font-medium">
-                      <button
-                        onClick={() => handleSort('score')}
-                        className="flex items-center space-x-1 hover:text-white transition-colors duration-200"
-                      >
+                      <div className="flex items-center space-x-1">
                         <Trophy className="w-4 h-4" />
                         <span>Score</span>
-                        {getSortIcon('score')}
-                      </button>
+                      </div>
                     </th>
                     <th className="text-left py-3 px-4 text-gray-300 font-medium">Game Mode</th>
-                    <th className="text-left py-3 px-4 text-gray-300 font-medium">Duration</th>
-                    <th className="text-left py-3 px-4 text-gray-300 font-medium">Bugs Killed</th>
-                    <th className="text-left py-3 px-4 text-gray-300 font-medium">Accuracy</th>
                   </tr>
                 </thead>
                 <tbody>
                   {scoreHistory.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="text-center py-8 text-gray-400">
+                      <td colSpan={3} className="text-center py-8 text-gray-400">
                         No games played yet. Start playing to see your score history!
                       </td>
                     </tr>
@@ -177,20 +145,11 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose, us
                         </td>
                         <td className="py-3 px-4">
                           <div className="flex items-center space-x-2">
-                            {getGameModeIcon(entry.gameMode)}
+                            <Target className="w-4 h-4" />
                             <span className="text-gray-300">
                               {getGameModeLabel(entry.gameMode)}
                             </span>
                           </div>
-                        </td>
-                        <td className="py-3 px-4 text-gray-300">
-                          {formatDuration(entry.duration)}
-                        </td>
-                        <td className="py-3 px-4 text-gray-300">
-                          {entry.bugsKilled || '-'}
-                        </td>
-                        <td className="py-3 px-4 text-gray-300">
-                          {entry.accuracy ? `${entry.accuracy}%` : '-'}
                         </td>
                       </tr>
                     ))
@@ -202,7 +161,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose, us
 
           {/* Statistics Summary */}
           {!loading && scoreHistory.length > 0 && (
-            <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-4">
               <div className="bg-gray-800/50 rounded-lg p-4">
                 <div className="text-2xl font-bold text-white">
                   {scoreHistory.length}
@@ -220,12 +179,6 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose, us
                   {Math.round(scoreHistory.reduce((sum, e) => sum + e.score, 0) / scoreHistory.length).toLocaleString()}
                 </div>
                 <div className="text-gray-400 text-sm">Average Score</div>
-              </div>
-              <div className="bg-gray-800/50 rounded-lg p-4">
-                <div className="text-2xl font-bold text-green-400">
-                  {scoreHistory.filter(e => e.gameMode === 'pest-control').length}
-                </div>
-                <div className="text-gray-400 text-sm">Pest Control Games</div>
               </div>
             </div>
           )}

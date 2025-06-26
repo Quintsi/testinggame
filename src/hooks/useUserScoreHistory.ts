@@ -22,15 +22,10 @@ export interface ScoreHistoryEntry {
   accuracy?: number;
 }
 
-export type SortField = 'date' | 'score';
-export type SortOrder = 'asc' | 'desc';
-
 export const useUserScoreHistory = (user: User | null) => {
   const [scoreHistory, setScoreHistory] = useState<ScoreHistoryEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [sortField, setSortField] = useState<SortField>('date');
-  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
   const fetchUserScoreHistory = async () => {
     if (!user) return;
@@ -43,7 +38,7 @@ export const useUserScoreHistory = (user: User | null) => {
       const q = query(
         historyRef,
         where('userId', '==', user.uid),
-        orderBy(sortField, sortOrder),
+        orderBy('date', 'desc'),
         limit(50) // Limit to last 50 games
       );
       
@@ -108,26 +103,14 @@ export const useUserScoreHistory = (user: User | null) => {
     }
   };
 
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortOrder('desc'); // Default to desc for new fields
-    }
-  };
-
   useEffect(() => {
     fetchUserScoreHistory();
-  }, [user, sortField, sortOrder]);
+  }, [user]);
 
   return {
     scoreHistory,
     loading,
     error,
-    sortField,
-    sortOrder,
-    handleSort,
     addScoreToHistory,
     fetchUserScoreHistory
   };
