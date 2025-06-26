@@ -35,6 +35,12 @@ export const usePestControl = () => {
     // When UI is visible, account for sidebar and other elements
     const isGameActive = gameStarted && !gameEnded;
     
+    // Define no-spawn zones for UI elements
+    const noSpawnZones = isGameActive ? [
+      // Timer/Score UI in top-left corner (compact)
+      { x: 0, y: 0, width: 140, height: 80 },
+    ] : [];
+    
     const marginLeft = isGameActive ? 20 : 200; // Minimal margin during gameplay
     const marginRight = isGameActive ? 20 : 50;
     const marginTop = isGameActive ? 20 : 100;
@@ -43,12 +49,33 @@ export const usePestControl = () => {
     const availableWidth = screenWidth - marginLeft - marginRight;
     const availableHeight = screenHeight - marginTop - marginBottom;
     
+    let x, y;
+    let attempts = 0;
+    const maxAttempts = 50;
+    
+    // Try to find a position that doesn't overlap with UI elements
+    do {
+      x = Math.random() * availableWidth + marginLeft;
+      y = Math.random() * availableHeight + marginTop;
+      attempts++;
+      
+      // Check if position overlaps with any no-spawn zone
+      const overlapsUI = noSpawnZones.some(zone => 
+        x >= zone.x && x <= zone.x + zone.width &&
+        y >= zone.y && y <= zone.y + zone.height
+      );
+      
+      if (!overlapsUI || attempts >= maxAttempts) {
+        break;
+      }
+    } while (attempts < maxAttempts);
+    
     const pestType = getRandomPestType();
     
     return {
       id: Date.now() + Math.random(),
-      x: Math.random() * availableWidth + marginLeft,
-      y: Math.random() * availableHeight + marginTop,
+      x,
+      y,
       timestamp: Date.now(),
       type: pestType,
       requiredWeapon: PEST_WEAPON_MAP[pestType],

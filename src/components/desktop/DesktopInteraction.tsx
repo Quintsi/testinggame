@@ -4,6 +4,8 @@ import { useDamageEffects } from '../../hooks/useDamageEffects';
 import { useParticleEffects } from '../../hooks/useParticleEffects';
 import { useMouseHandlers } from '../../hooks/useMouseHandlers';
 import { useSoundEffects } from '../../hooks/useSoundEffects';
+import { useFlamethrowerEffect } from '../../hooks/useFlamethrowerEffect';
+import { useGameClockContext } from '../effects/GameClockProvider';
 
 interface UseDesktopInteractionProps {
   selectedTool: Tool;
@@ -62,6 +64,24 @@ export const useDesktopInteraction = ({
     createDamageEffect, setDamageEffects, lastFlamethrowerDamage
   );
 
+  const { laserEffect } = useGameClockContext();
+
+  // Flamethrower effect with game clock integration
+  const handleFlamethrowerParticles = useCallback((x: number, y: number) => {
+    if (gameMode === 'desktop-destroyer') {
+      createDamageEffect(x, y, 'flamethrower', lastFlamethrowerDamage, setDamageEffects);
+      createParticles(x, y, 'flamethrower', getRandomPaintColor, setParticles);
+    }
+  }, [gameMode, createDamageEffect, createParticles, getRandomPaintColor, setDamageEffects, setParticles, lastFlamethrowerDamage]);
+
+  const flamethrowerEffect = useFlamethrowerEffect(
+    selectedTool,
+    isMouseDown,
+    mousePosition,
+    gameMode,
+    handleFlamethrowerParticles
+  );
+
   // Handle tool changes from keyboard
   useEffect(() => {
     const handleToolChange = (event: CustomEvent) => {
@@ -81,23 +101,32 @@ export const useDesktopInteraction = ({
 
     // Handle desktop destroyer mode
     if (gameMode === 'desktop-destroyer') {
-    if (selectedTool === 'chainsaw') setChainsawPath([{ x, y }]);
-    
-    // Check if weapon is individually muted
-    if (soundEnabled && !isWeaponMuted(selectedTool)) {
-      if (selectedTool === 'hammer') {
-        playSound(selectedTool);
-      } else if (selectedTool === 'chainsaw' || selectedTool === 'gun') {
-        startSound(selectedTool);
-      } else {
-        playSound(selectedTool);
+      if (selectedTool === 'chainsaw') setChainsawPath([{ x, y }]);
+      
+      // Check if weapon is individually muted
+      if (soundEnabled && !isWeaponMuted(selectedTool)) {
+        if (selectedTool === 'hammer') {
+          playSound(selectedTool);
+        } else if (selectedTool === 'chainsaw' || selectedTool === 'gun') {
+          startSound(selectedTool);
+        } else if (selectedTool === 'flamethrower') {
+          // Flamethrower sound is handled by the effect system
+          playSound(selectedTool);
+        } else {
+          playSound(selectedTool);
+        }
       }
-    }
-    
-      // Create initial damage effect and particles on mouse down
-    if (selectedTool !== 'chainsaw') {
-      createDamageEffect(x, y, selectedTool, lastFlamethrowerDamage, setDamageEffects);
-      createParticles(x, y, selectedTool, getRandomPaintColor, setParticles);
+      
+      // Create initial damage effect and particles on mouse down (except for chainsaw and flamethrower)
+      if (selectedTool !== 'chainsaw' && selectedTool !== 'flamethrower') {
+        createDamageEffect(x, y, selectedTool, lastFlamethrowerDamage, setDamageEffects);
+        createParticles(x, y, selectedTool, getRandomPaintColor, setParticles);
+        
+        // Fire laser beam with fixed angle for desktop destroyer mode
+        if (selectedTool === 'laser') {
+          const fixedAngle = Math.random() * Math.PI * 2; // Random but fixed angle
+          laserEffect.fireLaser(x, y, fixedAngle, 200, gameMode);
+        }
       }
     }
     
@@ -108,7 +137,7 @@ export const useDesktopInteraction = ({
         setIsMouseDown(false);
       }, 150); // Show frame 2 for 150ms then return to frame 1
     }
-  }, [selectedTool, soundEnabled, isWeaponMuted, startSound, playSound, gameMode, createDamageEffect, createParticles, getRandomPaintColor, setDamageEffects, setParticles, setIsMouseDown, setChainsawPath, lastFlamethrowerDamage]);
+  }, [selectedTool, soundEnabled, isWeaponMuted, startSound, playSound, gameMode, createDamageEffect, createParticles, getRandomPaintColor, setDamageEffects, setParticles, setIsMouseDown, setChainsawPath, lastFlamethrowerDamage, laserEffect]);
 
   const handleDesktopMouseUp = useCallback(() => {
     setIsMouseDown(false);
@@ -168,6 +197,12 @@ export const useDesktopInteraction = ({
           
           // Create particles for successful hit at bug position
           createBugParticles(hitBug.x, hitBug.y, selectedTool, getRandomPaintColor, setParticles);
+          
+          // Fire laser beam for pest control mode (follows mouse direction)
+          if (selectedTool === 'laser') {
+            const angle = Math.atan2(hitBug.y - y, hitBug.x - x);
+            laserEffect.fireLaser(x, y, angle, 150, gameMode);
+          }
         } else {
           // Failed attempt - wrong weapon - NO SOUND
           attemptKill(hitBug.id);
@@ -179,10 +214,16 @@ export const useDesktopInteraction = ({
         // Play weapon sound if there are compatible pests in the game (missed them)
         if (compatiblePestExists && soundEnabled && !isWeaponMuted(selectedTool)) {
           playSound(selectedTool);
+          
+          // Fire laser beam even on miss for visual feedback
+          if (selectedTool === 'laser') {
+            const randomAngle = Math.random() * Math.PI * 2;
+            laserEffect.fireLaser(x, y, randomAngle, 150, gameMode);
+          }
         }
       }
     }
-  }, [gameMode, gameStarted, bugs, selectedTool, killBug, attemptKill, soundEnabled, isWeaponMuted, playSound, playSquishSound, createPestDamageEffect, setPestDamageEffects, createBugParticles, setParticles, getWeaponHitbox, checkCollision, volume]);
+  }, [gameMode, gameStarted, bugs, selectedTool, killBug, attemptKill, soundEnabled, isWeaponMuted, playSound, playSquishSound, createPestDamageEffect, setPestDamageEffects, createBugParticles, setParticles, getWeaponHitbox, checkCollision, volume, laserEffect]);
 
   // Global mouse up handler to stop sounds when mouse is released outside desktop
   useEffect(() => {

@@ -1,28 +1,29 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { useGameClock } from './useGameClock';
+import { useGameClockContext } from '../components/effects/GameClockProvider';
 import { Tool } from '../types/game';
 
 export interface FlamethrowerState {
   isActive: boolean;
   lastEmissionTime: number;
   emissionRate: number; // particles per second
-  mouseX: number;
-  mouseY: number;
+  lastPosition: { x: number; y: number };
+  fixedPosition: { x: number; y: number } | null; // Fixed position for desktop destroyer mode
 }
 
 export const useFlamethrowerEffect = (
   selectedTool: Tool,
   isMouseDown: boolean,
   mousePosition: { x: number; y: number },
+  gameMode: 'desktop-destroyer' | 'pest-control',
   onEmitParticles: (x: number, y: number) => void
 ) => {
-  const gameClock = useGameClock(60);
+  const { gameClock } = useGameClockContext();
   const flamethrowerStateRef = useRef<FlamethrowerState>({
     isActive: false,
     lastEmissionTime: 0,
     emissionRate: 15, // 15 particles per second
-    mouseX: 0,
-    mouseY: 0,
+    lastPosition: { x: 0, y: 0 },
+    fixedPosition: null,
   });
 
   // Update flamethrower effect
@@ -35,11 +36,16 @@ export const useFlamethrowerEffect = (
     const emissionInterval = 1000 / state.emissionRate; // ms between emissions
 
     if (timeSinceLastEmission >= emissionInterval) {
-      // Emit particles at current mouse position
-      onEmitParticles(state.mouseX, state.mouseY);
+      // Use fixed position for desktop destroyer, current mouse position for pest control
+      const emissionPosition = gameMode === 'desktop-destroyer' && state.fixedPosition 
+        ? state.fixedPosition 
+        : state.lastPosition;
+      
+      // Emit particles at the determined position
+      onEmitParticles(emissionPosition.x, emissionPosition.y);
       state.lastEmissionTime = totalTime;
     }
-  }, [onEmitParticles]);
+  }, [onEmitParticles, gameMode]);
 
   // Subscribe to game clock
   useEffect(() => {
@@ -61,17 +67,26 @@ export const useFlamethrowerEffect = (
       // Start flamethrower
       state.isActive = true;
       state.lastEmissionTime = performance.now();
-      state.mouseX = mousePosition.x;
-      state.mouseY = mousePosition.y;
+      state.lastPosition = { ...mousePosition };
+      
+      // Set fixed position for desktop destroyer mode
+      if (gameMode === 'desktop-destroyer') {
+        state.fixedPosition = { ...mousePosition };
+      } else {
+        state.fixedPosition = null;
+      }
     } else if (!shouldBeActive && state.isActive) {
       // Stop flamethrower
       state.isActive = false;
+      state.fixedPosition = null;
     } else if (state.isActive) {
-      // Update mouse position while active
-      state.mouseX = mousePosition.x;
-      state.mouseY = mousePosition.y;
+      // Update position - for pest control mode, track mouse; for desktop destroyer, keep fixed
+      if (gameMode === 'pest-control') {
+        state.lastPosition = { ...mousePosition };
+      }
+      // For desktop destroyer, keep using the fixed position set when starting
     }
-  }, [selectedTool, isMouseDown, mousePosition]);
+  }, [selectedTool, isMouseDown, mousePosition, gameMode]);
 
   const isFlamethrowerActive = useCallback(() => {
     return flamethrowerStateRef.current.isActive;

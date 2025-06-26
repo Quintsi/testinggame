@@ -99,69 +99,22 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
 
   return (
     <>
-      {/* Timer Display - Top Left (only during active gameplay) */}
+      {/* Timer and Score Display - Top Left Corner (compact) */}
       {gameStarted && !gameEnded && (
-        <div className="absolute top-4 left-4 z-50">
-          <div className="bg-gray-800/95 backdrop-blur-sm rounded-xl p-4 shadow-2xl border border-gray-700">
+        <div className="absolute top-2 left-2 z-50">
+          <div className="bg-gray-800/95 backdrop-blur-sm rounded-lg p-2 shadow-2xl border border-gray-700 min-w-[120px]">
             <div className="text-center">
-              <div className="text-2xl font-bold text-white mb-1">
-                {timeLeft}
+              <div className="text-xl font-bold text-white">
+                {timeLeft}s
               </div>
-              <div className="text-sm text-gray-300">
-                seconds left
-              </div>
-              <div className="text-lg font-semibold text-green-400 mt-2">
+              <div className="text-sm font-semibold text-green-400">
                 Score: {score}
               </div>
               {missedAttempts > 0 && (
-                <div className="text-sm text-red-400 mt-1">
+                <div className="text-xs text-red-400">
                   Missed: {missedAttempts}
                 </div>
               )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Weapon Guide - Top Right (only during active gameplay) */}
-      {gameStarted && !gameEnded && (
-        <div className="absolute top-4 right-4 z-50">
-          <div className="bg-gray-800/95 backdrop-blur-sm rounded-xl p-3 shadow-2xl border border-gray-700">
-            <div className="text-xs text-gray-300 mb-2 text-center font-semibold">PEST → WEAPON</div>
-            <div className="space-y-1 text-xs">
-              {getWeaponGuideOrder().map(({ pest, weapon }) => (
-                <div key={pest} className="flex justify-between items-center">
-                  <span className="text-gray-300 capitalize">{getPestName(pest)}:</span>
-                  <span className={`font-semibold ml-2 ${getWeaponColor(weapon)}`}>
-                    {getWeaponName(weapon)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Current Bug Indicator - Bottom Right (only during active gameplay) */}
-      {gameStarted && !gameEnded && bugs.length > 0 && (
-        <div className="absolute bottom-4 right-4 z-50">
-          <div className="bg-gray-800/95 backdrop-blur-sm rounded-xl p-3 shadow-2xl border border-gray-700">
-            <div className="flex items-center space-x-3">
-              <div className="text-sm text-gray-300">Target:</div>
-              <div className="flex items-center space-x-2">
-                <img 
-                  src={getBugImage(bugs[0].type)} 
-                  alt={getPestName(bugs[0].type)}
-                  className="w-6 h-6"
-                />
-                <span className="text-white font-semibold">
-                  {getPestName(bugs[0].type)}
-                </span>
-              </div>
-              <div className="text-sm text-gray-400">→</div>
-              <div className={`text-sm font-semibold ${getWeaponColor(bugs[0].requiredWeapon)}`}>
-                {getWeaponName(bugs[0].requiredWeapon)}
-              </div>
             </div>
           </div>
         </div>

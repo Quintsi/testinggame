@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { useGameClock } from './useGameClock';
+import { useGameClockContext } from '../components/effects/GameClockProvider';
 import { Tool } from '../types/game';
 
 export interface LaserBeam {
@@ -11,6 +11,7 @@ export interface LaserBeam {
   intensity: number;
   createdAt: number;
   duration: number; // ms
+  angle: number; // Fixed angle for desktop destroyer mode
 }
 
 export interface LaserState {
@@ -19,7 +20,7 @@ export interface LaserState {
 }
 
 export const useLaserEffect = () => {
-  const gameClock = useGameClock(60);
+  const { gameClock } = useGameClockContext();
   const laserStateRef = useRef<LaserState>({
     beams: [],
     nextId: 0,
@@ -63,11 +64,20 @@ export const useLaserEffect = () => {
     return unsubscribe;
   }, [gameClock, updateLasers]);
 
-  const fireLaser = useCallback((startX: number, startY: number, angle: number, length: number = 200) => {
+  const fireLaser = useCallback((
+    startX: number, 
+    startY: number, 
+    angle?: number, 
+    length: number = 200,
+    gameMode: 'desktop-destroyer' | 'pest-control' = 'desktop-destroyer'
+  ) => {
     const state = laserStateRef.current;
     
-    const endX = startX + Math.cos(angle) * length;
-    const endY = startY + Math.sin(angle) * length;
+    // Use provided angle or generate random angle for desktop destroyer mode
+    const laserAngle = angle !== undefined ? angle : Math.random() * Math.PI * 2;
+    
+    const endX = startX + Math.cos(laserAngle) * length;
+    const endY = startY + Math.sin(laserAngle) * length;
     
     const newBeam: LaserBeam = {
       id: state.nextId++,
@@ -77,7 +87,8 @@ export const useLaserEffect = () => {
       endY,
       intensity: 1,
       createdAt: performance.now(),
-      duration: 300, // 300ms laser beam duration
+      duration: gameMode === 'desktop-destroyer' ? 300 : 200, // Shorter duration for pest control
+      angle: laserAngle,
     };
     
     state.beams.push(newBeam);
