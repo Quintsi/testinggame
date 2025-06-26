@@ -1,5 +1,4 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { useGameClockContext } from '../components/effects/GameClockProvider';
 import { Tool } from '../types/game';
 import { useGameClock } from './useGameClock';
 
@@ -20,8 +19,7 @@ export interface LaserState {
   nextId: number;
 }
 
-export const useLaserEffect = () => {
-  const { gameClock } = useGameClockContext();
+export const useLaserEffect = (gameClock?: ReturnType<typeof useGameClock>) => {
   const laserStateRef = useRef<LaserState>({
     beams: [],
     nextId: 0,
@@ -54,8 +52,10 @@ export const useLaserEffect = () => {
     });
   }, []);
 
-  // Subscribe to game clock
+  // Subscribe to game clock if provided
   useEffect(() => {
+    if (!gameClock) return;
+    
     const unsubscribe = gameClock.subscribe({
       id: 'laser-effect',
       callback: updateLasers,

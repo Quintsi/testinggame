@@ -64,10 +64,11 @@ export const useDesktopInteraction = ({
     createDamageEffect, setDamageEffects, lastFlamethrowerDamage
   );
 
-  const { laserEffect } = useGameClockContext();
+  const { laserEffect, gameClock } = useGameClockContext();
 
   // Flamethrower effect with game clock integration
   const handleFlamethrowerParticles = useCallback((x: number, y: number) => {
+    console.log('Flamethrower particles emitted at:', x, y, 'gameMode:', gameMode);
     if (gameMode === 'desktop-destroyer') {
       createDamageEffect(x, y, 'flamethrower', lastFlamethrowerDamage, setDamageEffects);
       createParticles(x, y, 'flamethrower', getRandomPaintColor, setParticles);
@@ -79,7 +80,8 @@ export const useDesktopInteraction = ({
     isMouseDown,
     mousePosition,
     gameMode,
-    handleFlamethrowerParticles
+    handleFlamethrowerParticles,
+    gameClock
   );
 
   // Handle tool changes from keyboard

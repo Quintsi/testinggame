@@ -31,7 +31,7 @@ export const GameClockProvider: React.FC<GameClockProviderProps> = ({ children }
   const gameClock = useGameClock(60);
   const weaponAnimations = useWeaponAnimations();
   const particleSystem = useParticleSystem();
-  const laserEffect = useLaserEffect();
+  const laserEffect = useLaserEffect(gameClock);
 
   const value = {
     gameClock,

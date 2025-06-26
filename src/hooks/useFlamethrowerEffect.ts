@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { useGameClockContext } from '../components/effects/GameClockProvider';
 import { Tool } from '../types/game';
+import { useGameClock } from './useGameClock';
 
 export interface FlamethrowerState {
   isActive: boolean;
@@ -15,9 +15,9 @@ export const useFlamethrowerEffect = (
   isMouseDown: boolean,
   mousePosition: { x: number; y: number },
   gameMode: 'desktop-destroyer' | 'pest-control',
-  onEmitParticles: (x: number, y: number) => void
+  onEmitParticles: (x: number, y: number) => void,
+  gameClock?: ReturnType<typeof useGameClock>
 ) => {
-  const { gameClock } = useGameClockContext();
   const flamethrowerStateRef = useRef<FlamethrowerState>({
     isActive: false,
     lastEmissionTime: 0,
@@ -32,6 +32,12 @@ export const useFlamethrowerEffect = (
     
     if (!state.isActive) return;
 
+    // Set initial time if not set
+    if (state.lastEmissionTime === 0) {
+      state.lastEmissionTime = totalTime;
+      return;
+    }
+
     const timeSinceLastEmission = totalTime - state.lastEmissionTime;
     const emissionInterval = 1000 / state.emissionRate; // ms between emissions
 
@@ -41,14 +47,17 @@ export const useFlamethrowerEffect = (
         ? state.fixedPosition 
         : state.lastPosition;
       
+      console.log('Flamethrower emitting particles at:', emissionPosition.x, emissionPosition.y);
       // Emit particles at the determined position
       onEmitParticles(emissionPosition.x, emissionPosition.y);
       state.lastEmissionTime = totalTime;
     }
   }, [onEmitParticles, gameMode]);
 
-  // Subscribe to game clock
+  // Subscribe to game clock if provided
   useEffect(() => {
+    if (!gameClock) return;
+    
     const unsubscribe = gameClock.subscribe({
       id: 'flamethrower-effect',
       callback: updateFlamethrower,
@@ -65,8 +74,9 @@ export const useFlamethrowerEffect = (
     
     if (shouldBeActive && !state.isActive) {
       // Start flamethrower
+      console.log('Flamethrower started at position:', mousePosition);
       state.isActive = true;
-      state.lastEmissionTime = performance.now();
+      state.lastEmissionTime = 0; // Will be set by the first update call
       state.lastPosition = { ...mousePosition };
       
       // Set fixed position for desktop destroyer mode
@@ -77,6 +87,7 @@ export const useFlamethrowerEffect = (
       }
     } else if (!shouldBeActive && state.isActive) {
       // Stop flamethrower
+      console.log('Flamethrower stopped');
       state.isActive = false;
       state.fixedPosition = null;
     } else if (state.isActive) {
