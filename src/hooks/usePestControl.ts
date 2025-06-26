@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { Bug, PestType, Tool } from '../types/game';
 import { useAuth } from './useAuth';
 import { useLeaderboard } from './useLeaderboard';
+import { useUserScoreHistory } from './useUserScoreHistory';
 
 // Define pest-weapon relationships
 const PEST_WEAPON_MAP: Record<PestType, Tool> = {
@@ -24,9 +25,12 @@ export const usePestControl = () => {
   const [timeLeft, setTimeLeft] = useState(30);
   const [missedAttempts, setMissedAttempts] = useState(0);
   const [userHighScore, setUserHighScore] = useState(0);
+  const [gameStartTime, setGameStartTime] = useState<number>(0);
+  const [gameDuration, setGameDuration] = useState<number>(30); // Total game duration in seconds
 
   const { user, isAuthenticated } = useAuth();
   const { submitScore, getUserHighScore } = useLeaderboard();
+  const { addScoreToHistory } = useUserScoreHistory(user);
 
   const getRandomPestType = useCallback((): PestType => {
     return PEST_TYPES[Math.floor(Math.random() * PEST_TYPES.length)];
@@ -66,10 +70,11 @@ export const usePestControl = () => {
     const marginTop = isGameActive ? 20 : 100;
     const marginBottom = isGameActive ? 60 : 100; // Account for taskbar
     
-    const availableWidth = screenWidth - marginLeft - marginRight;
-    const availableHeight = screenHeight - marginTop - marginBottom;
+    const pestSize = 40; // Pest image size (width and height)
+    const availableWidth = screenWidth - marginLeft - marginRight - pestSize;
+    const availableHeight = screenHeight - marginTop - marginBottom - pestSize;
     
-    let x, y;
+    let x: number, y: number;
     let attempts = 0;
     const maxAttempts = 50;
     
@@ -103,11 +108,14 @@ export const usePestControl = () => {
   }, [gameStarted, gameEnded, getRandomPestType]);
 
   const startGame = useCallback((setPestDamageEffects?: React.Dispatch<React.SetStateAction<any[]>>) => {
+    const startTime = Date.now();
     setGameStarted(true);
     setGameEnded(false);
     setScore(0);
     setTimeLeft(30);
     setMissedAttempts(0);
+    setGameStartTime(startTime);
+    setGameDuration(30);
     
     // Clear pest damage effects when starting new game
     if (setPestDamageEffects) {
@@ -128,10 +136,20 @@ export const usePestControl = () => {
     setBugs([]);
     setHiddenBug(null);
 
+    // Calculate game duration
+    const gameDuration = gameStartTime > 0 ? Math.floor((Date.now() - gameStartTime) / 1000) : 30;
+
     // Submit score to leaderboard if user is authenticated
     if (user && isAuthenticated && score > 0) {
       try {
         await submitScore(user, score);
+        
+        // Also save to score history
+        await addScoreToHistory(score, 'pest-control', {
+          duration: gameDuration,
+          bugsKilled: score,
+          accuracy: missedAttempts > 0 ? Math.round((score / (score + missedAttempts)) * 100) : 100
+        });
         
         // Update local high score if this score is higher
         if (score > userHighScore) {
@@ -141,7 +159,7 @@ export const usePestControl = () => {
         console.error('Failed to submit score:', error);
       }
     }
-  }, [user, isAuthenticated, score, userHighScore, submitScore]);
+  }, [user, isAuthenticated, score, userHighScore, submitScore, addScoreToHistory, gameStartTime, missedAttempts]);
 
   const attemptKill = useCallback((bugId: number, weaponUsed: Tool) => {
     const targetBug = bugs.find(bug => bug.id === bugId);
@@ -193,22 +211,24 @@ export const usePestControl = () => {
     setMissedAttempts(0);
   }, []);
 
-  // Timer countdown effect
+  // Timer countdown effect - More robust implementation
   useEffect(() => {
     if (!gameStarted || gameEnded) return;
 
     const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          endGame();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+      const elapsedSeconds = Math.floor((Date.now() - gameStartTime) / 1000);
+      const remainingTime = Math.max(0, gameDuration - elapsedSeconds);
+      
+      setTimeLeft(remainingTime);
+      
+      if (remainingTime <= 0) {
+        endGame();
+        clearInterval(timer);
+      }
+    }, 100); // Check every 100ms for more precise timing
 
     return () => clearInterval(timer);
-  }, [gameStarted, gameEnded, endGame]);
+  }, [gameStarted, gameEnded, gameStartTime, gameDuration, endGame]);
 
   return {
     bugs,

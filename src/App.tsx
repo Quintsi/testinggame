@@ -120,20 +120,19 @@ function App() {
   return (
     <GameClockProvider>
       <div className="h-screen w-screen bg-gray-900 overflow-hidden relative">
+        {/* Fixed background image */}
+        <div className="bg-fixed-cover" />
         {/* Login Button - Always visible */}
         <LoginButton onShowLeaderboard={() => setShowLeaderboard(true)} />
-
         {/* Leaderboard Modal */}
         <LeaderboardModal 
           isOpen={showLeaderboard} 
           onClose={() => setShowLeaderboard(false)} 
         />
-
         {/* Game Mode Selector - Hide during active pest control */}
         {!shouldHideUI && (
           <GameModeSelector currentMode={gameMode} onModeChange={handleModeChange} />
         )}
-
         {/* Tool Sidebar - Hide during active pest control */}
         {!shouldHideUI && (
           <ToolSidebar
@@ -149,7 +148,6 @@ function App() {
             onWeaponMuteToggle={toggleWeaponMute}
           />
         )}
-
         {/* Desktop Environment */}
         <div className="flex-1 relative">
           {/* Show auth guard only for pest control mode when not authenticated */}
@@ -247,16 +245,13 @@ function App() {
           {/* Particle System */}
           <ParticleSystem particles={particles} />
         </div>
-
-        {/* Instructions - Hide during active pest control */}
-        {!shouldHideUI && (
-          <InstructionText
-            gameMode={gameMode}
-            gameStarted={gameStarted}
-            score={score}
-            soundEnabled={soundEnabled}
-          />
-        )}
+        {/* Instructions - Always show */}
+        <InstructionText
+          gameMode={gameMode}
+          gameStarted={gameStarted}
+          score={score}
+          soundEnabled={soundEnabled}
+        />
       </div>
     </GameClockProvider>
   );
