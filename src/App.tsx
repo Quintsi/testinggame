@@ -6,7 +6,7 @@ import ParticleSystem from './components/tools/ParticleSystem';
 import GameModeSelector from './components/game/GameModeSelector';
 import PestControlOverlay from './components/game/PestControlOverlay';
 import { InstructionText } from './components/ui/InstructionText';
-import { GameClockProvider } from './components/effects/GameClockProvider';
+import { GameClockProvider } from './components/effects/GameClockProvider'
 import { useGameState } from './hooks/useGameState';
 import { Tool } from './types/game';
 
