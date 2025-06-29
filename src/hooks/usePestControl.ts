@@ -28,8 +28,7 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
   const [gameStartTime, setGameStartTime] = useState<number>(0);
   const [gameDuration, setGameDuration] = useState<number>(30); // Total game duration in seconds
   const [wave, setWave] = useState(1);
-  const [bugsInWave, setBugsInWave] = useState(0);
-  const [bugsKilledInWave, setBugsKilledInWave] = useState(0);
+  const [elapsedTime, setElapsedTime] = useState(0); // Timer counting up for endless mode
 
   const { user, isAuthenticated } = useAuth();
   const { submitScore, getUserHighScore } = useLeaderboard();
@@ -129,21 +128,94 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
     const centerX = screenWidth / 2;
     const centerY = screenHeight / 2;
     
-    // Calculate movement properties for endless mode
+    // Calculate movement properties for endless mode based on pest type
     let velocityX = 0;
     let velocityY = 0;
     let speed = 0;
+    let targetX = centerX;
+    let targetY = centerY;
     
     if (forEndlessMode) {
-      // Calculate direction towards center
-      const dx = centerX - x;
-      const dy = centerY - y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      
-      // Normalize direction and apply speed
-      speed = 0.5 + Math.random() * 1.0; // Random speed between 0.5 and 1.5 pixels per frame
-      velocityX = (dx / distance) * speed;
-      velocityY = (dy / distance) * speed;
+      switch (pestType) {
+        case 'caterpillar':
+          // Slow and erratic movement
+          speed = 0.3 + Math.random() * 0.2; // 0.3-0.5 speed
+          // Random direction changes every few seconds
+          const randomAngle = Math.random() * Math.PI * 2;
+          velocityX = Math.cos(randomAngle) * speed;
+          velocityY = Math.sin(randomAngle) * speed;
+          break;
+          
+        case 'snail':
+          // Slow and straight line movement
+          speed = 0.2 + Math.random() * 0.2; // 0.2-0.4 speed
+          const dx = centerX - x;
+          const dy = centerY - y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          velocityX = (dx / distance) * speed;
+          velocityY = (dy / distance) * speed;
+          break;
+          
+        case 'spider':
+          // Average speed, stays near edges
+          speed = 0.6 + Math.random() * 0.3; // 0.6-0.9 speed
+          // Target a point near the edge instead of center
+          const edgeTargets = [
+            { x: 50, y: screenHeight / 2 }, // Left edge
+            { x: screenWidth - 50, y: screenHeight / 2 }, // Right edge
+            { x: screenWidth / 2, y: 50 }, // Top edge
+            { x: screenWidth / 2, y: screenHeight - 50 }, // Bottom edge
+          ];
+          const edgeTarget = edgeTargets[Math.floor(Math.random() * edgeTargets.length)];
+          targetX = edgeTarget.x;
+          targetY = edgeTarget.y;
+          const edgeDx = targetX - x;
+          const edgeDy = targetY - y;
+          const edgeDistance = Math.sqrt(edgeDx * edgeDx + edgeDy * edgeDy);
+          velocityX = (edgeDx / edgeDistance) * speed;
+          velocityY = (edgeDy / edgeDistance) * speed;
+          break;
+          
+        case 'termite':
+          // Average speed, erratic movement
+          speed = 0.5 + Math.random() * 0.4; // 0.5-0.9 speed
+          const erraticAngle = Math.random() * Math.PI * 2;
+          velocityX = Math.cos(erraticAngle) * speed;
+          velocityY = Math.sin(erraticAngle) * speed;
+          break;
+          
+        case 'fly':
+          // Fast, loops around screen
+          speed = 1.0 + Math.random() * 0.5; // 1.0-1.5 speed
+          // Create circular motion around a random point
+          const loopCenterX = 200 + Math.random() * (screenWidth - 400);
+          const loopCenterY = 200 + Math.random() * (screenHeight - 400);
+          targetX = loopCenterX;
+          targetY = loopCenterY;
+          // Initial velocity perpendicular to center for circular motion
+          const toCenterX = loopCenterX - x;
+          const toCenterY = loopCenterY - y;
+          velocityX = -toCenterY * speed * 0.01; // Perpendicular for circular motion
+          velocityY = toCenterX * speed * 0.01;
+          break;
+          
+        case 'cockroach':
+          // Fast, dart in straight lines
+          speed = 0.8 + Math.random() * 0.7; // 0.8-1.5 speed
+          const dartAngle = Math.random() * Math.PI * 2;
+          velocityX = Math.cos(dartAngle) * speed;
+          velocityY = Math.sin(dartAngle) * speed;
+          break;
+          
+        default:
+          // Default behavior - move toward center
+          speed = 0.5 + Math.random() * 0.5;
+          const defaultDx = centerX - x;
+          const defaultDy = centerY - y;
+          const defaultDistance = Math.sqrt(defaultDx * defaultDx + defaultDy * defaultDy);
+          velocityX = (defaultDx / defaultDistance) * speed;
+          velocityY = (defaultDy / defaultDistance) * speed;
+      }
     }
     
     return {
@@ -155,8 +227,8 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
       requiredWeapon: PEST_WEAPON_MAP[pestType],
       velocityX,
       velocityY,
-      targetX: centerX,
-      targetY: centerY,
+      targetX,
+      targetY,
       speed,
       lastMoveTime: Date.now(),
     };
@@ -168,12 +240,11 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
     setGameEnded(false);
     setScore(0);
     setTimeLeft(gameMode === 'endless-mode' ? 0 : 30);
+    setElapsedTime(0);
     setMissedAttempts(0);
     setGameStartTime(startTime);
     setGameDuration(gameMode === 'endless-mode' ? 0 : 30);
     setWave(1);
-    setBugsInWave(0);
-    setBugsKilledInWave(0);
     
     // Clear pest damage effects when starting new game
     if (setPestDamageEffects) {
@@ -181,10 +252,9 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
     }
     
     if (gameMode === 'endless-mode') {
-      // Start with 3 bugs in endless mode
-      const initialBugs = Array.from({ length: 3 }, () => createBug(true));
+      // Start with 2 bugs in endless mode
+      const initialBugs = Array.from({ length: 2 }, () => createBug(true));
       setBugs(initialBugs);
-      setBugsInWave(3);
       setHiddenBug(null);
     } else {
       // Create the first visible bug and pre-load the hidden one for pest-control
@@ -236,29 +306,13 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
       // Successful kill
       setBugs(prev => prev.filter(bug => bug.id !== bugId));
       setScore(prev => prev + 1);
-      setBugsKilledInWave(prev => prev + 1);
       
       // Only continue spawning if the game is still active
       if (gameStarted && !gameEnded) {
         if (gameMode === 'endless-mode') {
-          // Check if wave is complete
-          if (bugsKilledInWave + 1 >= bugsInWave) {
-            // Start next wave
-            const nextWave = wave + 1;
-            const bugsInNextWave = Math.min(3 + Math.floor(nextWave / 2), 8); // Increase bugs per wave, max 8
-            
-            setWave(nextWave);
-            setBugsInWave(bugsInNextWave);
-            setBugsKilledInWave(0);
-            
-            // Spawn new wave of bugs
-            const newBugs = Array.from({ length: bugsInNextWave }, () => createBug(true));
-            setBugs(newBugs);
-          } else {
-            // Continue current wave - spawn a new bug to replace the killed one
-            const newBug = createBug(true);
-            setBugs(prev => [...prev, newBug]);
-          }
+          // In endless mode, immediately spawn a new bug to replace the killed one
+          const newBug = createBug(true);
+          setBugs(prev => [...prev, newBug]);
         } else if (hiddenBug) {
           // Pest control mode - immediately show the pre-loaded hidden bug
           setBugs([hiddenBug]);
@@ -274,42 +328,26 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
       setMissedAttempts(prev => prev + 1);
       return false;
     }
-  }, [bugs, gameStarted, gameEnded, hiddenBug, createBug, gameMode, wave, bugsInWave, bugsKilledInWave]);
+  }, [bugs, gameStarted, gameEnded, hiddenBug, createBug, gameMode]);
 
   const killBug = useCallback((bugId: number) => {
     // This is now just a wrapper that removes the bug without weapon checking
     // Used for legacy compatibility - the real logic is in attemptKill
     setBugs(prev => prev.filter(bug => bug.id !== bugId));
     setScore(prev => prev + 1);
-    setBugsKilledInWave(prev => prev + 1);
     
     if (gameStarted && !gameEnded) {
       if (gameMode === 'endless-mode') {
-        // Check if wave is complete
-        if (bugsKilledInWave + 1 >= bugsInWave) {
-          // Start next wave
-          const nextWave = wave + 1;
-          const bugsInNextWave = Math.min(3 + Math.floor(nextWave / 2), 8);
-          
-          setWave(nextWave);
-          setBugsInWave(bugsInNextWave);
-          setBugsKilledInWave(0);
-          
-          // Spawn new wave of bugs
-          const newBugs = Array.from({ length: bugsInNextWave }, () => createBug(true));
-          setBugs(newBugs);
-        } else {
-          // Continue current wave
-          const newBug = createBug(true);
-          setBugs(prev => [...prev, newBug]);
-        }
+        // Immediately spawn a new bug
+        const newBug = createBug(true);
+        setBugs(prev => [...prev, newBug]);
       } else if (hiddenBug) {
         setBugs([hiddenBug]);
         const nextHiddenBug = createBug(false);
         setHiddenBug(nextHiddenBug);
       }
     }
-  }, [gameStarted, gameEnded, hiddenBug, createBug, gameMode, wave, bugsInWave, bugsKilledInWave]);
+  }, [gameStarted, gameEnded, hiddenBug, createBug, gameMode]);
 
   const resetGame = useCallback(() => {
     setGameStarted(false);
@@ -318,32 +356,59 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
     setHiddenBug(null);
     setScore(0);
     setTimeLeft(gameMode === 'endless-mode' ? 0 : 30);
+    setElapsedTime(0);
     setMissedAttempts(0);
     setWave(1);
-    setBugsInWave(0);
-    setBugsKilledInWave(0);
   }, [gameMode]);
 
-  // Timer countdown effect - More robust implementation
+  // Timer effect - countdown for pest-control, count up for endless-mode
   useEffect(() => {
-    if (!gameStarted || gameEnded || gameMode === 'endless-mode') return;
+    if (!gameStarted || gameEnded) return;
 
     const timer = setInterval(() => {
       const elapsedSeconds = Math.floor((Date.now() - gameStartTime) / 1000);
-      const remainingTime = Math.max(0, gameDuration - elapsedSeconds);
       
-      setTimeLeft(remainingTime);
-      
-      if (remainingTime <= 0) {
-        endGame();
-        clearInterval(timer);
+      if (gameMode === 'endless-mode') {
+        // Count up for endless mode
+        setElapsedTime(elapsedSeconds);
+      } else {
+        // Count down for pest control mode
+        const remainingTime = Math.max(0, gameDuration - elapsedSeconds);
+        setTimeLeft(remainingTime);
+        
+        if (remainingTime <= 0) {
+          endGame();
+          clearInterval(timer);
+        }
       }
     }, 100); // Check every 100ms for more precise timing
 
     return () => clearInterval(timer);
   }, [gameStarted, gameEnded, gameStartTime, gameDuration, endGame, gameMode]);
 
-  // Bug movement effect for endless mode
+  // Bug spawning effect for endless mode - spawn more bugs as time goes on
+  useEffect(() => {
+    if (!gameStarted || gameEnded || gameMode !== 'endless-mode') return;
+
+    const spawnInterval = setInterval(() => {
+      // Calculate spawn rate based on elapsed time
+      // Start spawning additional bugs after 10 seconds, then every 8 seconds, then faster
+      const spawnRate = Math.max(2000, 8000 - (elapsedTime * 100)); // Faster spawning over time
+      const maxBugs = Math.min(3 + Math.floor(elapsedTime / 15), 12); // Max 12 bugs on screen
+      
+      setBugs(prevBugs => {
+        if (prevBugs.length < maxBugs && elapsedTime > 5) { // Start spawning additional bugs after 5 seconds
+          const newBug = createBug(true);
+          return [...prevBugs, newBug];
+        }
+        return prevBugs;
+      });
+    }, 3000); // Check every 3 seconds
+
+    return () => clearInterval(spawnInterval);
+  }, [gameStarted, gameEnded, gameMode, elapsedTime, createBug]);
+
+  // Bug movement effect for endless mode with unique movement patterns
   useEffect(() => {
     if (!gameStarted || gameEnded || gameMode !== 'endless-mode') return;
 
@@ -352,20 +417,134 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
         return prevBugs.map(bug => {
           const now = Date.now();
           const deltaTime = now - (bug.lastMoveTime || now);
-          
-          // Update position based on velocity
-          const newX = bug.x + (bug.velocityX || 0) * (deltaTime / 16); // Normalize to ~60fps
-          const newY = bug.y + (bug.velocityY || 0) * (deltaTime / 16);
-          
-          // Check if bug reached the center (game over condition)
           const centerX = window.innerWidth / 2;
           const centerY = window.innerHeight / 2;
+          
+          let newX = bug.x;
+          let newY = bug.y;
+          let newVelocityX = bug.velocityX || 0;
+          let newVelocityY = bug.velocityY || 0;
+          
+          // Apply unique movement patterns based on pest type
+          switch (bug.type) {
+            case 'caterpillar':
+              // Slow and erratic - change direction randomly every 2-4 seconds
+              if (Math.random() < 0.02) { // 2% chance per frame to change direction
+                const randomAngle = Math.random() * Math.PI * 2;
+                const speed = 0.3 + Math.random() * 0.2;
+                newVelocityX = Math.cos(randomAngle) * speed;
+                newVelocityY = Math.sin(randomAngle) * speed;
+              }
+              newX += newVelocityX * (deltaTime / 16);
+              newY += newVelocityY * (deltaTime / 16);
+              break;
+              
+            case 'snail':
+              // Slow straight line, change direction every 5-8 seconds
+              if (Math.random() < 0.005) { // 0.5% chance per frame to change direction
+                const dx = centerX - newX + (Math.random() - 0.5) * 200;
+                const dy = centerY - newY + (Math.random() - 0.5) * 200;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const speed = 0.2 + Math.random() * 0.2;
+                newVelocityX = (dx / distance) * speed;
+                newVelocityY = (dy / distance) * speed;
+              }
+              newX += newVelocityX * (deltaTime / 16);
+              newY += newVelocityY * (deltaTime / 16);
+              break;
+              
+            case 'spider':
+              // Stay near edges, move around perimeter
+              const edgeDistance = 100;
+              const toEdgeX = newX < centerX ? edgeDistance - newX : (window.innerWidth - edgeDistance) - newX;
+              const toEdgeY = newY < centerY ? edgeDistance - newY : (window.innerHeight - edgeDistance) - newY;
+              
+              // Move along the edge
+              if (Math.abs(toEdgeX) < 50) {
+                newVelocityY = (Math.random() - 0.5) * 1.2;
+                newVelocityX = toEdgeX * 0.1;
+              } else if (Math.abs(toEdgeY) < 50) {
+                newVelocityX = (Math.random() - 0.5) * 1.2;
+                newVelocityY = toEdgeY * 0.1;
+              } else {
+                // Move toward nearest edge
+                const speed = 0.6 + Math.random() * 0.3;
+                newVelocityX = toEdgeX > 0 ? speed : -speed;
+                newVelocityY = toEdgeY > 0 ? speed : -speed;
+              }
+              
+              newX += newVelocityX * (deltaTime / 16);
+              newY += newVelocityY * (deltaTime / 16);
+              break;
+              
+            case 'termite':
+              // Erratic movement toward center with random direction changes
+              if (Math.random() < 0.03) { // 3% chance per frame to change direction
+                const toCenterX = centerX - newX;
+                const toCenterY = centerY - newY;
+                const randomFactor = 0.7; // How much randomness vs center-seeking
+                const randomAngle = Math.random() * Math.PI * 2;
+                const speed = 0.5 + Math.random() * 0.4;
+                
+                newVelocityX = (toCenterX * (1 - randomFactor) + Math.cos(randomAngle) * 100 * randomFactor) * speed * 0.01;
+                newVelocityY = (toCenterY * (1 - randomFactor) + Math.sin(randomAngle) * 100 * randomFactor) * speed * 0.01;
+              }
+              newX += newVelocityX * (deltaTime / 16);
+              newY += newVelocityY * (deltaTime / 16);
+              break;
+              
+            case 'fly':
+              // Fast loops around the screen
+              const loopRadius = 150;
+              const loopCenterX = bug.targetX || centerX;
+              const loopCenterY = bug.targetY || centerY;
+              
+              // Calculate circular motion
+              const angle = Math.atan2(newY - loopCenterY, newX - loopCenterX);
+              const newAngle = angle + 0.05; // Rotation speed
+              const speed = 1.0 + Math.random() * 0.5;
+              
+              newX = loopCenterX + Math.cos(newAngle) * loopRadius;
+              newY = loopCenterY + Math.sin(newAngle) * loopRadius;
+              
+              // Occasionally change loop center
+              if (Math.random() < 0.002) {
+                bug.targetX = 200 + Math.random() * (window.innerWidth - 400);
+                bug.targetY = 200 + Math.random() * (window.innerHeight - 400);
+              }
+              break;
+              
+            case 'cockroach':
+              // Fast darts in straight lines, change direction suddenly
+              if (Math.random() < 0.015) { // 1.5% chance per frame to change direction
+                const dartAngle = Math.random() * Math.PI * 2;
+                const speed = 0.8 + Math.random() * 0.7;
+                newVelocityX = Math.cos(dartAngle) * speed;
+                newVelocityY = Math.sin(dartAngle) * speed;
+              }
+              newX += newVelocityX * (deltaTime / 16);
+              newY += newVelocityY * (deltaTime / 16);
+              break;
+              
+            default:
+              // Default movement toward center
+              newX += newVelocityX * (deltaTime / 16);
+              newY += newVelocityY * (deltaTime / 16);
+          }
+          
+          // Keep bugs on screen (wrap around or bounce)
+          if (newX < -40) newX = window.innerWidth + 40;
+          if (newX > window.innerWidth + 40) newX = -40;
+          if (newY < -40) newY = window.innerHeight + 40;
+          if (newY > window.innerHeight + 40) newY = -40;
+          
+          // Check if bug reached the center (game over condition)
           const distanceToCenter = Math.sqrt(
             Math.pow(newX - centerX, 2) + Math.pow(newY - centerY, 2)
           );
           
-          // If any bug reaches within 50 pixels of center, end game
-          if (distanceToCenter <= 50) {
+          // If any bug reaches within 30 pixels of center, end game
+          if (distanceToCenter <= 30) {
             setTimeout(() => endGame(), 100); // Small delay to show the bug reaching center
           }
           
@@ -373,6 +552,8 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
             ...bug,
             x: newX,
             y: newY,
+            velocityX: newVelocityX,
+            velocityY: newVelocityY,
             lastMoveTime: now,
           };
         });
@@ -387,7 +568,7 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
     gameStarted,
     gameEnded,
     score,
-    timeLeft,
+    timeLeft: gameMode === 'endless-mode' ? elapsedTime : timeLeft, // Return elapsed time for endless mode
     missedAttempts,
     userHighScore,
     wave,

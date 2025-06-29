@@ -138,6 +138,12 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
     }
   };
 
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   return (
     <>
       {/* Timer, Score Display and Exit Button - Top Left Corner */}
@@ -146,7 +152,7 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
           <div className="bg-gray-800/95 backdrop-blur-sm rounded-lg p-3 shadow-2xl border border-gray-700 min-w-[160px]">
             <div className="flex items-center justify-between mb-2">
               <div className="text-xl font-bold text-white">
-                {gameMode === 'endless-mode' ? `Wave ${wave}` : `${timeLeft}s`}
+                {gameMode === 'endless-mode' ? formatTime(timeLeft) : `${timeLeft}s`}
               </div>
               <button
                 onClick={onExitGame}
@@ -159,6 +165,11 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
             <div className="text-sm font-semibold text-green-400">
               Score: {score}
             </div>
+            {gameMode === 'endless-mode' && (
+              <div className="text-xs text-purple-400">
+                Bugs: {bugs.length}
+              </div>
+            )}
             {userHighScore > 0 && (
               <div className="text-xs text-blue-400">
                 Best: {userHighScore}
@@ -179,6 +190,19 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
           <div className="text-center max-w-2xl mx-auto px-4">
             <h2 className="text-4xl font-bold text-white mb-4">{getGameModeTitle()}</h2>
             <p className="text-xl text-gray-300 mb-4">{getGameModeDescription()}</p>
+            
+            {/* Endless Mode Specific Instructions */}
+            {gameMode === 'endless-mode' && (
+              <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-4 mb-6">
+                <h3 className="text-lg font-bold text-red-400 mb-2">⚠️ Survival Rules</h3>
+                <div className="text-sm text-red-300 space-y-1">
+                  <p>• Pests spawn from screen edges and move toward the center</p>
+                  <p>• If ANY pest reaches the center, you lose!</p>
+                  <p>• More pests spawn as time goes on</p>
+                  <p>• Each pest type has unique movement patterns</p>
+                </div>
+              </div>
+            )}
             
             {/* Authentication Status - Only show for pest-control mode */}
             {gameMode === 'pest-control' && (
@@ -276,7 +300,7 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
               </div>
               {gameMode === 'endless-mode' && (
                 <div className="text-lg text-blue-400 mt-2">
-                  Reached Wave {wave}
+                  Survived {formatTime(timeLeft)}
                 </div>
               )}
               {missedAttempts > 0 && (
@@ -345,7 +369,7 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
       {gameStarted && !gameEnded && bugs.map((bug) => (
         <div
           key={bug.id}
-          className="absolute z-30 animate-pulse pointer-events-none transition-all duration-100"
+          className="absolute z-30 pointer-events-none transition-all duration-100"
           style={{
             left: bug.x - 20,
             top: bug.y - 20,
