@@ -54,8 +54,8 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
     };
 
     const getCursor = () => {
-      if (gameMode === 'pest-control') {
-        return 'cursor-none'; // Hide cursor completely in pest control mode
+      if (gameMode === 'pest-control' || gameMode === 'endless-mode') {
+        return 'cursor-none'; // Hide cursor completely in pest modes
       }
       if (selectedTool === 'laser' || selectedTool === 'gun' || selectedTool === 'hammer' || selectedTool === 'flamethrower' || selectedTool === 'chainsaw' || selectedTool === 'paintball') {
         return 'cursor-none'; // Hide default cursor for weapons
@@ -134,7 +134,10 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
 
     // Get weapon hitbox for visual debugging (optional)
     const getWeaponHitboxStyle = () => {
-      if (gameMode !== 'pest-control') return {};
+      if (gameMode !== 'pest-control' && gameMode !== 'endless-mode') return {};
+      
+      // Reduced hitboxes for chainsaw and gun in endless mode for balance
+      const isEndlessMode = gameMode === 'endless-mode';
       
       let hitbox;
       switch (selectedTool) {
@@ -142,7 +145,9 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
           hitbox = { width: 100, height: 100 };
           break;
         case 'gun':
-          hitbox = { width: 80, height: 80 };
+          // Significantly reduced hitbox for gun in endless mode
+          const gunSize = isEndlessMode ? 40 : 80; // 50% smaller in endless mode
+          hitbox = { width: gunSize, height: gunSize };
           break;
         case 'flamethrower':
           hitbox = { width: 140, height: 140 };
@@ -154,20 +159,22 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
           hitbox = { width: 180, height: 180 };
           break;
         case 'chainsaw':
-          hitbox = { width: 120, height: 120 };
+          // Significantly reduced hitbox for chainsaw in endless mode
+          const chainsawSize = isEndlessMode ? 60 : 120; // 50% smaller in endless mode
+          hitbox = { width: chainsawSize, height: chainsawSize };
           break;
         default:
           hitbox = { width: 80, height: 80 };
       }
 
-      // Center hitbox directly on cursor position in pest control mode
+      // Center hitbox directly on cursor position in pest modes
       return {
         position: 'absolute' as const,
         left: mousePosition.x - (hitbox.width / 2),
         top: mousePosition.y - (hitbox.height / 2),
         width: hitbox.width,
         height: hitbox.height,
-        border: '2px dashed rgba(255, 0, 0, 0.5)',
+        border: `2px dashed ${isEndlessMode && (selectedTool === 'chainsaw' || selectedTool === 'gun') ? 'rgba(255, 165, 0, 0.7)' : 'rgba(255, 0, 0, 0.5)'}`, // Orange for reduced hitboxes
         borderRadius: selectedTool === 'laser' ? '4px' : '50%',
         pointerEvents: 'none' as const,
         zIndex: 45,
@@ -214,7 +221,7 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
         <LaserBeamRenderer />
 
         {/* Weapon Hitbox Visualization (for debugging - can be removed) */}
-        {gameMode === 'pest-control' && (
+        {(gameMode === 'pest-control' || gameMode === 'endless-mode') && (
           <>
             <div style={getWeaponHitboxStyle()} />
             {/* Weapon center point indicator - now centered on cursor */}
@@ -294,7 +301,10 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
               <div className="bg-gray-700 text-white px-3 py-1 rounded text-sm">Notepad</div>
             )}
             {gameMode === 'pest-control' && (
-              <div className="bg-gray-700 text-white px-3 py-1 rounded text-sm">Pest Control</div>
+              <div className="bg-gray-700 text-white px-3 py-1 rounded text-sm">Pest Protocol</div>
+            )}
+            {gameMode === 'endless-mode' && (
+              <div className="bg-gray-700 text-white px-3 py-1 rounded text-sm">Endless Mode</div>
             )}
           </div>
           <div className="text-white text-sm">
@@ -302,11 +312,15 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
           </div>
         </div>
 
-        {/* Damage Overlay - Only show in desktop destroyer mode */}
-        {gameMode === 'desktop-destroyer' && <DamageOverlay effects={damageEffects} chainsawPaths={chainsawPaths} />}
+        {/* Damage Overlay - Show in desktop destroyer mode AND endless mode */}
+        {(gameMode === 'desktop-destroyer' || gameMode === 'endless-mode') && (
+          <DamageOverlay effects={damageEffects} chainsawPaths={chainsawPaths} />
+        )}
         
-        {/* Pest Damage Overlay - Show in pest control mode */}
-        {gameMode === 'pest-control' && <DamageOverlay effects={[]} chainsawPaths={[]} pestDamageEffects={pestDamageEffects} />}
+        {/* Pest Damage Overlay - Show in all pest modes */}
+        {(gameMode === 'pest-control' || gameMode === 'endless-mode') && (
+          <DamageOverlay effects={[]} chainsawPaths={[]} pestDamageEffects={pestDamageEffects} />
+        )}
       </div>
     );
   }

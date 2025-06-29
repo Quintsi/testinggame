@@ -5,19 +5,31 @@ export const useSoundEffects = (volume: number = 0.5, gameMode: GameMode = 'desk
   // Volume multipliers to normalize different sound effects to the same perceived loudness
   const volumeMultipliers = useMemo(() => ({
     hammer: 1.0,      // Base volume
-    gun: gameMode === 'pest-control' ? 0.2 : 0.8,  // Much quieter in pest control (gun2.mp3), normal in desktop
+    gun: gameMode === 'pest-control' ? 0.2 : (gameMode === 'endless-mode' ? 0.3 : 0.8),  // Different volumes for different modes
     flamethrower: 0.9, // Slightly quieter
     laser: 0.7,       // Lasers are often loud, make quieter
     paintball: 0.8,   // Paintball guns can be loud
-    chainsaw: 0.6,    // Chainsaws are very loud, make much quieter
+    chainsaw: gameMode === 'endless-mode' ? 0.4 : 0.6,    // Quieter in endless mode
     squish: 4.0,      // Normalize squish to base volume
   }), [gameMode]);
 
   // Pre-load audio files for better performance
   const audioFiles = useMemo(() => {
-    // Use different audio files for pest control mode
-    const gunAudio = gameMode === 'pest-control' ? '/asset/soundeffect/gun2.mp3' : '/asset/soundeffect/gun.mp3';
-    const chainsawAudio = gameMode === 'pest-control' ? '/asset/soundeffect/chainsaw2.mp3' : '/asset/soundeffect/chainsaw.wav';
+    // Use different audio files based on game mode
+    let gunAudio, chainsawAudio;
+    
+    if (gameMode === 'pest-control') {
+      gunAudio = '/asset/soundeffect/gun2.mp3';
+      chainsawAudio = '/asset/soundeffect/chainsaw2.mp3';
+    } else if (gameMode === 'endless-mode') {
+      // Use original sounds for endless mode as requested
+      gunAudio = '/asset/soundeffect/gun.mp3';
+      chainsawAudio = '/asset/soundeffect/chainsaw.wav';
+    } else {
+      // Desktop destroyer mode uses original sounds
+      gunAudio = '/asset/soundeffect/gun.mp3';
+      chainsawAudio = '/asset/soundeffect/chainsaw.wav';
+    }
     
     return {
       hammer: new Audio('/asset/soundeffect/hammer.wav'),
@@ -93,7 +105,7 @@ export const useSoundEffects = (volume: number = 0.5, gameMode: GameMode = 'desk
         console.warn('Failed to play sound:', error);
       });
 
-      // For chainsaw in pest control mode, make it shorter
+      // For chainsaw in pest control mode, make it shorter (but not in endless mode)
       if (tool === 'chainsaw' && gameMode === 'pest-control') {
         // Stop the sound after 0.5 seconds
         setTimeout(() => {

@@ -27,12 +27,16 @@ export const useGameState = () => {
     timeLeft, 
     missedAttempts,
     userHighScore,
+    wave,
+    screenTooSmall,
+    minScreenWidth,
+    minScreenHeight,
     startGame: startPestGame, 
     killBug, 
     attemptKill,
     resetGame,
     PEST_WEAPON_MAP
-  } = usePestControl();
+  } = usePestControl(gameMode);
 
   // Wrapper function to start game and clear pest damage effects
   const startGame = useCallback(() => {
@@ -44,7 +48,7 @@ export const useGameState = () => {
     setPestDamageEffects([]);
     setChainsawPaths([]);
     setParticles([]);
-    if (gameMode === 'pest-control') resetGame();
+    if (gameMode === 'pest-control' || gameMode === 'endless-mode') resetGame();
   };
 
   const handleModeChange = (mode: GameMode) => {
@@ -53,7 +57,7 @@ export const useGameState = () => {
     setPestDamageEffects([]);
     setChainsawPaths([]);
     setParticles([]);
-    if (mode === 'pest-control') resetGame();
+    if (mode === 'pest-control' || mode === 'endless-mode') resetGame();
   };
 
   const toggleWeaponMute = (weapon: Tool) => {
@@ -93,6 +97,10 @@ export const useGameState = () => {
     timeLeft,
     missedAttempts,
     userHighScore,
+    wave,
+    screenTooSmall,
+    minScreenWidth,
+    minScreenHeight,
     PEST_WEAPON_MAP,
     mutedWeapons,
     
@@ -116,5 +124,6 @@ export const useGameState = () => {
     attemptKill,
     toggleWeaponMute,
     isWeaponMuted,
+    resetGame, // Export resetGame for the exit button
   };
 };

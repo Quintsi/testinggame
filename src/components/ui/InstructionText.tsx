@@ -19,7 +19,12 @@ export const InstructionText: React.FC<InstructionTextProps> = ({
     if (gameMode === 'pest-control') {
       return gameStarted 
         ? `Hunt the bugs! Score: ${score} | ${baseText}`
-        : `Click START to begin Pest Control! ${baseText}`;
+        : `Click START to begin Pest Protocol! ${baseText}`;
+    }
+    if (gameMode === 'endless-mode') {
+      return gameStarted 
+        ? `Survive the endless swarm! Score: ${score} | ${baseText}`
+        : `Click START to begin Endless Mode! ${baseText}`;
     }
     return `Click anywhere on the desktop to destroy it! ${baseText}`;
   };

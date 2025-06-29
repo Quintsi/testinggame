@@ -61,7 +61,7 @@ const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onClose }) 
             <Trophy className="w-8 h-8 text-yellow-400" />
             <div>
               <h2 className="text-2xl font-bold text-white">Global Leaderboard</h2>
-              <p className="text-gray-400 text-sm">Top 10 Pest Control Champions</p>
+              <p className="text-gray-400 text-sm">Top 10 Pest Protocol Champions</p>
             </div>
           </div>
           <button
@@ -88,7 +88,7 @@ const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onClose }) 
             <div className="text-center py-12">
               <Trophy className="w-16 h-16 text-gray-600 mx-auto mb-4" />
               <div className="text-gray-400 mb-2">No scores yet!</div>
-              <div className="text-gray-500 text-sm">Be the first to set a high score in Pest Control mode</div>
+              <div className="text-gray-500 text-sm">Be the first to set a high score in Pest Protocol mode</div>
             </div>
           ) : (
             <div className="space-y-3">
@@ -179,7 +179,7 @@ const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onClose }) 
         {/* Footer */}
         <div className="border-t border-gray-700 p-4 bg-gray-800/50">
           <div className="text-center text-sm text-gray-400">
-            Play Pest Control mode to compete for the top spot! 🏆
+            Play Pest Protocol mode to compete for the top spot! 🏆
           </div>
         </div>
       </div>
