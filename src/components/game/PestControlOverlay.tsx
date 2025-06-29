@@ -1,5 +1,5 @@
 import React from 'react';
-import { X } from 'lucide-react';
+import { X, Monitor } from 'lucide-react';
 import { Bug as BugType, Tool, PestType, GameMode } from '../../types/game';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -19,6 +19,9 @@ interface PestControlOverlayProps {
   onExitGame: () => void;
   gameMode: GameMode;
   wave?: number; // For endless mode
+  screenTooSmall?: boolean;
+  minScreenWidth?: number;
+  minScreenHeight?: number;
 }
 
 const PestControlOverlay: React.FC<PestControlOverlayProps> = ({ 
@@ -33,7 +36,10 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
   PEST_WEAPON_MAP,
   onExitGame,
   gameMode,
-  wave = 1
+  wave = 1,
+  screenTooSmall = false,
+  minScreenWidth = 1024,
+  minScreenHeight = 768
 }) => {
   const { isAuthenticated, user } = useAuth();
 
@@ -143,6 +149,32 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
+
+  // Show screen size warning for pest protocol mode
+  if (gameMode === 'pest-control' && screenTooSmall) {
+    return (
+      <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-50">
+        <div className="text-center max-w-lg mx-auto p-8">
+          <Monitor className="w-20 h-20 text-red-400 mx-auto mb-6" />
+          <h2 className="text-3xl font-bold text-white mb-4">Screen Too Small</h2>
+          <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-6 mb-6">
+            <p className="text-red-300 text-lg mb-4">
+              Pest Protocol mode requires a minimum screen size to prevent exploitation and ensure fair gameplay.
+            </p>
+            <div className="text-red-400 font-semibold">
+              <p>Minimum Required: {minScreenWidth} × {minScreenHeight}</p>
+              <p>Current Size: {window.innerWidth} × {window.innerHeight}</p>
+            </div>
+          </div>
+          <div className="text-gray-400 text-sm space-y-2">
+            <p>• Increase your browser window size</p>
+            <p>• Use fullscreen mode (F11)</p>
+            <p>• Try Desktop Destroyer or Endless Mode instead</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

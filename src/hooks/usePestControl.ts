@@ -16,6 +16,10 @@ const PEST_WEAPON_MAP: Record<PestType, Tool> = {
 
 const PEST_TYPES: PestType[] = ['termite', 'spider', 'fly', 'cockroach', 'snail', 'caterpillar'];
 
+// Minimum screen size requirements to prevent exploitation
+const MIN_SCREEN_WIDTH = 1024;
+const MIN_SCREEN_HEIGHT = 768;
+
 export const usePestControl = (gameMode: GameMode = 'pest-control') => {
   const [bugs, setBugs] = useState<Bug[]>([]);
   const [hiddenBug, setHiddenBug] = useState<Bug | null>(null);
@@ -29,6 +33,7 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
   const [gameDuration, setGameDuration] = useState<number>(30); // Total game duration in seconds
   const [wave, setWave] = useState(1);
   const [elapsedTime, setElapsedTime] = useState(0); // Timer counting up for endless mode
+  const [screenTooSmall, setScreenTooSmall] = useState(false);
 
   const { user, isAuthenticated } = useAuth();
   const { submitScore, getUserHighScore } = useLeaderboard();
@@ -37,6 +42,29 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
   const getRandomPestType = useCallback((): PestType => {
     return PEST_TYPES[Math.floor(Math.random() * PEST_TYPES.length)];
   }, []);
+
+  // Check screen size for pest protocol mode
+  const checkScreenSize = useCallback(() => {
+    if (gameMode === 'pest-control') {
+      const isScreenTooSmall = window.innerWidth < MIN_SCREEN_WIDTH || window.innerHeight < MIN_SCREEN_HEIGHT;
+      setScreenTooSmall(isScreenTooSmall);
+      return !isScreenTooSmall;
+    }
+    setScreenTooSmall(false);
+    return true;
+  }, [gameMode]);
+
+  // Monitor screen size changes
+  useEffect(() => {
+    const handleResize = () => {
+      checkScreenSize();
+    };
+
+    window.addEventListener('resize', handleResize);
+    checkScreenSize(); // Initial check
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, [checkScreenSize]);
 
   // Load user's high score when authenticated
   useEffect(() => {
@@ -61,11 +89,18 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
     // When UI is visible, account for sidebar and other elements
     const isGameActive = gameStarted && !gameEnded;
     
-    // Define no-spawn zones for UI elements - only for pest-control mode
-    const noSpawnZones = (isGameActive && gameMode === 'pest-control') ? [
-      // Timer/Score UI in top-left corner (expanded to include exit button)
-      { x: 0, y: 0, width: 180, height: 100 },
-    ] : [];
+    // Define no-spawn zones for UI elements with 10px buffer
+    const noSpawnZones: Array<{ x: number; y: number; width: number; height: number }> = [];
+    
+    if (gameMode === 'pest-control' && isGameActive) {
+      // Timer/Score UI in top-left corner (expanded to include exit button + 10px buffer)
+      noSpawnZones.push({
+        x: 0,
+        y: 0,
+        width: 180 + 10, // UI width + buffer
+        height: 100 + 10  // UI height + buffer
+      });
+    }
     
     // For endless mode, use normal margins since UI is visible
     const marginLeft = (gameMode === 'endless-mode') ? 200 : (isGameActive ? 20 : 200);
@@ -79,7 +114,7 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
     
     let x: number, y: number;
     let attempts = 0;
-    const maxAttempts = 50;
+    const maxAttempts = 100; // Increased attempts for better positioning
     
     if (forEndlessMode) {
       // For endless mode, spawn pests at the edges of the screen
@@ -114,15 +149,38 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
         attempts++;
         
         // Check if position overlaps with any no-spawn zone
-        const overlapsUI = noSpawnZones.some(zone => 
-          x >= zone.x && x <= zone.x + zone.width &&
-          y >= zone.y && y <= zone.y + zone.height
-        );
+        const overlapsUI = noSpawnZones.some(zone => {
+          // Check if pest would overlap with UI zone (including pest size)
+          const pestLeft = x;
+          const pestRight = x + pestSize;
+          const pestTop = y;
+          const pestBottom = y + pestSize;
+          
+          const zoneLeft = zone.x;
+          const zoneRight = zone.x + zone.width;
+          const zoneTop = zone.y;
+          const zoneBottom = zone.y + zone.height;
+          
+          // AABB collision detection
+          return (
+            pestLeft < zoneRight &&
+            pestRight > zoneLeft &&
+            pestTop < zoneBottom &&
+            pestBottom > zoneTop
+          );
+        });
         
         if (!overlapsUI || attempts >= maxAttempts) {
           break;
         }
       } while (attempts < maxAttempts);
+      
+      // If we couldn't find a good position after max attempts, use a safe fallback
+      if (attempts >= maxAttempts) {
+        // Place in center-right area as a safe fallback
+        x = screenWidth * 0.6 + Math.random() * (screenWidth * 0.3);
+        y = screenHeight * 0.3 + Math.random() * (screenHeight * 0.4);
+      }
     }
     
     const pestType = getRandomPestType();
@@ -236,6 +294,11 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
   }, [gameStarted, gameEnded, getRandomPestType, gameMode]);
 
   const startGame = useCallback((setPestDamageEffects?: React.Dispatch<React.SetStateAction<any[]>>) => {
+    // Check screen size before starting pest protocol mode
+    if (gameMode === 'pest-control' && !checkScreenSize()) {
+      return; // Don't start the game if screen is too small
+    }
+
     const startTime = Date.now();
     setGameStarted(true);
     setGameEnded(false);
@@ -265,7 +328,7 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
       setBugs([firstBug]);
       setHiddenBug(secondBug);
     }
-  }, [createBug, gameMode]);
+  }, [createBug, gameMode, checkScreenSize]);
 
   const endGame = useCallback(async () => {
     setGameStarted(false);
@@ -574,6 +637,9 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
     missedAttempts,
     userHighScore,
     wave,
+    screenTooSmall,
+    minScreenWidth: MIN_SCREEN_WIDTH,
+    minScreenHeight: MIN_SCREEN_HEIGHT,
     startGame,
     killBug,
     attemptKill,

@@ -41,6 +41,9 @@ function App() {
     missedAttempts,
     userHighScore,
     wave,
+    screenTooSmall,
+    minScreenWidth,
+    minScreenHeight,
     PEST_WEAPON_MAP,
     mutedWeapons,
     pestDamageEffects,
@@ -287,6 +290,9 @@ function App() {
               onExitGame={resetGame}
               gameMode={gameMode}
               wave={wave}
+              screenTooSmall={screenTooSmall}
+              minScreenWidth={minScreenWidth}
+              minScreenHeight={minScreenHeight}
             />
           )}
           
