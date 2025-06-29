@@ -39,7 +39,7 @@ export const useMouseHandlers = (
 
   // Continuous damage effects while mouse is held down
   useEffect(() => {
-    if (isMouseDown && gameMode === 'desktop-destroyer' && selectedTool === 'gun' && createDamageEffect && setDamageEffects && lastFlamethrowerDamage) {
+    if (isMouseDown && (gameMode === 'desktop-destroyer' || gameMode === 'endless-mode') && selectedTool === 'gun' && createDamageEffect && setDamageEffects && lastFlamethrowerDamage) {
       const now = Date.now();
       const timeSinceLastDamage = now - lastDamageTimeRef.current;
       
@@ -89,7 +89,7 @@ export const useMouseHandlers = (
         setMousePosition(newPosition);
 
         // Update chainsaw path when drawing and create real-time path effect
-        if (isMouseDown && selectedTool === 'chainsaw' && gameMode === 'desktop-destroyer') {
+        if (isMouseDown && selectedTool === 'chainsaw' && (gameMode === 'desktop-destroyer' || gameMode === 'endless-mode')) {
           setChainsawPath((prev: { x: number; y: number }[]) => {
             const newPath = [...prev, newPosition];
             
