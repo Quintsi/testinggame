@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Bug, PestType, Tool, GameMode } from '../types/game';
 import { useAuth } from './useAuth';
 import { useLeaderboard } from './useLeaderboard';
@@ -29,10 +29,13 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
   const [timeLeft, setTimeLeft] = useState(30);
   const [missedAttempts, setMissedAttempts] = useState(0);
   const [userHighScore, setUserHighScore] = useState(0);
-  const [gameStartTime, setGameStartTime] = useState<number>(0);
   const [wave, setWave] = useState(1);
-  const [elapsedTime, setElapsedTime] = useState(0); // Timer counting up for endless mode
   const [screenTooSmall, setScreenTooSmall] = useState(false);
+
+  // Timer references for consistent timing
+  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const gameStartTimeRef = useRef<number>(0);
+  const lastTimerUpdateRef = useRef<number>(0);
 
   const { user, isAuthenticated } = useAuth();
   const { submitScore, getUserHighScore } = useLeaderboard();
@@ -302,50 +305,20 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
     };
   }, [gameStarted, gameEnded, getRandomPestType, gameMode]);
 
-  const startGame = useCallback((setPestDamageEffects?: React.Dispatch<React.SetStateAction<any[]>>) => {
-    // Check screen size before starting pest protocol mode
-    if (gameMode === 'pest-control' && !checkScreenSize()) {
-      return; // Don't start the game if screen is too small
-    }
-
-    const startTime = Date.now();
-    setGameStarted(true);
-    setGameEnded(false);
-    setScore(0);
-    setTimeLeft(gameMode === 'endless-mode' ? 0 : 30); // Start at 0 for endless, 30 for pest-control
-    setElapsedTime(0);
-    setMissedAttempts(0);
-    setGameStartTime(startTime);
-    setWave(1);
-    
-    // Clear pest damage effects when starting new game
-    if (setPestDamageEffects) {
-      setPestDamageEffects([]);
-    }
-    
-    if (gameMode === 'endless-mode') {
-      // Start with 2 bugs in endless mode
-      const initialBugs = Array.from({ length: 2 }, () => createBug(true));
-      setBugs(initialBugs);
-      setHiddenBug(null);
-    } else {
-      // Create the first visible bug and pre-load the hidden one for pest-control
-      const firstBug = createBug(false);
-      const secondBug = createBug(false);
-      
-      setBugs([firstBug]);
-      setHiddenBug(secondBug);
-    }
-  }, [createBug, gameMode, checkScreenSize]);
-
   const endGame = useCallback(async () => {
     setGameStarted(false);
     setGameEnded(true);
     setBugs([]);
     setHiddenBug(null);
 
+    // Clear timer
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+
     // Calculate game duration
-    const gameDuration = gameStartTime > 0 ? Math.floor((Date.now() - gameStartTime) / 1000) : 30;
+    const gameDuration = gameStartTimeRef.current > 0 ? Math.floor((Date.now() - gameStartTimeRef.current) / 1000) : 30;
 
     // Submit score to leaderboard if user is authenticated
     if (user && isAuthenticated && score > 0) {
@@ -367,7 +340,80 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
         console.error('Failed to submit score:', error);
       }
     }
-  }, [user, isAuthenticated, score, userHighScore, submitScore, addScoreToHistory, gameStartTime, missedAttempts, gameMode]);
+  }, [user, isAuthenticated, score, userHighScore, submitScore, addScoreToHistory, missedAttempts, gameMode]);
+
+  const startGame = useCallback((setPestDamageEffects?: React.Dispatch<React.SetStateAction<any[]>>) => {
+    // Check screen size before starting pest protocol mode
+    if (gameMode === 'pest-control' && !checkScreenSize()) {
+      return; // Don't start the game if screen is too small
+    }
+
+    // Clear any existing timer
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+
+    const startTime = Date.now();
+    gameStartTimeRef.current = startTime;
+    lastTimerUpdateRef.current = startTime;
+    
+    setGameStarted(true);
+    setGameEnded(false);
+    setScore(0);
+    setMissedAttempts(0);
+    setWave(1);
+    
+    // Set initial timer values based on game mode
+    if (gameMode === 'endless-mode') {
+      setTimeLeft(0); // Start at 0 for endless mode (count up)
+    } else {
+      setTimeLeft(30); // Start at 30 for pest-control mode (count down)
+    }
+    
+    // Clear pest damage effects when starting new game
+    if (setPestDamageEffects) {
+      setPestDamageEffects([]);
+    }
+    
+    // Start the appropriate timer
+    if (gameMode === 'endless-mode') {
+      // Endless mode: count up from 0 indefinitely
+      timerIntervalRef.current = setInterval(() => {
+        const now = Date.now();
+        const elapsedSeconds = Math.floor((now - gameStartTimeRef.current) / 1000);
+        setTimeLeft(elapsedSeconds);
+      }, 1000);
+    } else {
+      // Pest control mode: count down from 30 to 0
+      timerIntervalRef.current = setInterval(() => {
+        const now = Date.now();
+        const elapsedSeconds = Math.floor((now - gameStartTimeRef.current) / 1000);
+        const remainingTime = Math.max(0, 30 - elapsedSeconds);
+        
+        setTimeLeft(remainingTime);
+        
+        // End game when timer reaches 0
+        if (remainingTime <= 0) {
+          endGame();
+        }
+      }, 1000);
+    }
+    
+    if (gameMode === 'endless-mode') {
+      // Start with 2 bugs in endless mode
+      const initialBugs = Array.from({ length: 2 }, () => createBug(true));
+      setBugs(initialBugs);
+      setHiddenBug(null);
+    } else {
+      // Create the first visible bug and pre-load the hidden one for pest-control
+      const firstBug = createBug(false);
+      const secondBug = createBug(false);
+      
+      setBugs([firstBug]);
+      setHiddenBug(secondBug);
+    }
+  }, [createBug, gameMode, checkScreenSize, endGame]);
 
   const attemptKill = useCallback((bugId: number, weaponUsed: Tool) => {
     const targetBug = bugs.find(bug => bug.id === bugId);
@@ -430,41 +476,25 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
   }, [gameStarted, gameEnded, hiddenBug, createBug, gameMode]);
 
   const resetGame = useCallback(() => {
+    // Clear timer
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+
     setGameStarted(false);
     setGameEnded(false);
     setBugs([]);
     setHiddenBug(null);
     setScore(0);
     setTimeLeft(gameMode === 'endless-mode' ? 0 : 30); // Reset to 0 for endless, 30 for pest-control
-    setElapsedTime(0);
     setMissedAttempts(0);
     setWave(1);
+    
+    // Reset timer references
+    gameStartTimeRef.current = 0;
+    lastTimerUpdateRef.current = 0;
   }, [gameMode]);
-
-  // Timer effect - countdown for pest-control (1 second intervals), count up for endless-mode (1 second intervals)
-  useEffect(() => {
-    if (!gameStarted || gameEnded) return;
-
-    const timer = setInterval(() => {
-      if (gameMode === 'endless-mode') {
-        // Count up for endless mode - increment by 1 second
-        setTimeLeft(prev => prev + 1);
-        setElapsedTime(prev => prev + 1);
-      } else {
-        // Count down for pest control mode - decrement by 1 second
-        setTimeLeft(prev => {
-          const newTime = prev - 1;
-          if (newTime <= 0) {
-            endGame();
-            return 0;
-          }
-          return newTime;
-        });
-      }
-    }, 1000); // Update every 1 second for both modes
-
-    return () => clearInterval(timer);
-  }, [gameStarted, gameEnded, gameMode, endGame]);
 
   // Bug spawning effect for endless mode - spawn more bugs as time goes on
   useEffect(() => {
@@ -473,19 +503,19 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
     const spawnInterval = setInterval(() => {
       // Calculate spawn rate based on elapsed time
       // Start spawning additional bugs after 10 seconds, then every 8 seconds, then faster
-      const maxBugs = Math.min(3 + Math.floor(elapsedTime / 15), 15); // Max 15 bugs on screen, increases every 15 seconds
+      const maxBugs = Math.min(3 + Math.floor(timeLeft / 15), 15); // Max 15 bugs on screen, increases every 15 seconds
       
       setBugs(prevBugs => {
-        if (prevBugs.length < maxBugs && elapsedTime > 5) { // Start spawning additional bugs after 5 seconds
+        if (prevBugs.length < maxBugs && timeLeft > 5) { // Start spawning additional bugs after 5 seconds
           const newBug = createBug(true);
           return [...prevBugs, newBug];
         }
         return prevBugs;
       });
-    }, Math.max(1000, 4000 - (elapsedTime * 50))); // Spawn faster over time, minimum 1 second interval
+    }, Math.max(1000, 4000 - (timeLeft * 50))); // Spawn faster over time, minimum 1 second interval
 
     return () => clearInterval(spawnInterval);
-  }, [gameStarted, gameEnded, gameMode, elapsedTime, createBug]);
+  }, [gameStarted, gameEnded, gameMode, timeLeft, createBug]);
 
   // Bug movement effect for endless mode with unique movement patterns
   useEffect(() => {
@@ -634,6 +664,15 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
 
     return () => clearInterval(moveInterval);
   }, [gameStarted, gameEnded, gameMode]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+      }
+    };
+  }, []);
 
   return {
     bugs,
