@@ -111,6 +111,7 @@ export const useDesktopInteraction = ({
         if (selectedTool === 'hammer') {
           playSound(selectedTool);
         } else if (selectedTool === 'chainsaw' || selectedTool === 'gun') {
+          // Start continuous sound for gun and chainsaw in both desktop destroyer and endless mode
           startSound(selectedTool);
         } else if (selectedTool === 'flamethrower') {
           // Flamethrower sound is handled by the effect system
@@ -144,6 +145,8 @@ export const useDesktopInteraction = ({
 
   const handleDesktopMouseUp = useCallback(() => {
     setIsMouseDown(false);
+    
+    // Stop continuous sounds for chainsaw and gun in both desktop destroyer and endless mode
     if (selectedTool === 'chainsaw') {
       setChainsawPath([]);
       if (soundEnabled && !isWeaponMuted(selectedTool)) stopSound(selectedTool);
@@ -188,8 +191,9 @@ export const useDesktopInteraction = ({
           const canKill = gameMode === 'endless-mode' || selectedTool === hitBug.requiredWeapon;
           
           if (canKill) {
-            // Successful kill - play weapon sound at reduced volume
-            if (soundEnabled && !isWeaponMuted(selectedTool)) {
+            // Successful kill - but DON'T play weapon sound here for endless mode
+            // The continuous sound is already handled by mouse down/up
+            if (gameMode === 'pest-control' && soundEnabled && !isWeaponMuted(selectedTool)) {
               const quietVolume = (volume / 100) * 0.5;
               playSound(selectedTool, quietVolume);
             }
@@ -239,15 +243,13 @@ export const useDesktopInteraction = ({
               }
             }
           } else if (gameMode === 'endless-mode') {
-            // For endless mode, always play sound and create effects even on miss for chaos
-            if (soundEnabled && !isWeaponMuted(selectedTool)) {
-              playSound(selectedTool);
-              
-              // Fire laser beam even on miss
-              if (selectedTool === 'laser') {
-                const randomAngle = Math.random() * Math.PI * 2;
-                laserEffect.fireLaser(x, y, randomAngle, 150, gameMode);
-              }
+            // For endless mode, DON'T play additional sounds on miss
+            // The continuous sound is already handled by mouse down/up
+            
+            // Fire laser beam even on miss
+            if (selectedTool === 'laser') {
+              const randomAngle = Math.random() * Math.PI * 2;
+              laserEffect.fireLaser(x, y, randomAngle, 150, gameMode);
             }
             
             // Create damage effects even on miss for maximum chaos
@@ -262,6 +264,7 @@ export const useDesktopInteraction = ({
   // Global mouse up handler to stop sounds when mouse is released outside desktop
   useEffect(() => {
     const handleGlobalMouseUp = () => {
+      // Stop continuous sounds for gun and chainsaw in both desktop destroyer and endless mode
       if (soundEnabled && !isWeaponMuted(selectedTool) && (selectedTool === 'chainsaw' || selectedTool === 'gun')) {
         stopSound(selectedTool);
       }
