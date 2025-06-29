@@ -15,7 +15,7 @@ const LoginButton: React.FC<LoginButtonProps> = ({ onShowLeaderboard }) => {
 
   if (loading) {
     return (
-      <div className="absolute right-4 z-50">
+      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 translate-x-48 z-50">
         <div className="bg-gray-800/90 backdrop-blur-sm rounded-xl p-3 shadow-2xl border border-gray-700">
           <div className="animate-spin w-6 h-6 border-2 border-blue-400 border-t-transparent rounded-full"></div>
         </div>
@@ -25,7 +25,7 @@ const LoginButton: React.FC<LoginButtonProps> = ({ onShowLeaderboard }) => {
 
   return (
     <>
-      <div className="absolute top-20 right-4 z-50">
+      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 translate-x-48 z-50">
         <div className="bg-gray-800/90 backdrop-blur-sm rounded-xl p-3 shadow-2xl border border-gray-700">
           {isAuthenticated && user ? (
             <div className="flex items-center space-x-3">
