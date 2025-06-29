@@ -164,94 +164,100 @@ export const useDesktopInteraction = ({
 
       // Check collision with bugs using weapon hitbox and fallback distance check
       const weaponHitbox = getWeaponHitbox(x, y, selectedTool);
-      const hitBug = bugs.find(bug => {
-        // Try weapon hitbox collision first
-        const hitboxCollision = checkCollision(weaponHitbox, bug.x, bug.y);
-        
-        // Fallback to distance check if hitbox collision fails
-        if (!hitboxCollision) {
-          const distance = Math.sqrt(Math.pow(x - bug.x, 2) + Math.pow(y - bug.y, 2));
-          return distance <= 30; // Slightly larger radius for fallback
-        }
-        
-        return hitboxCollision;
-      });
-
-      if (hitBug) {
-        // For endless mode, any weapon can kill any pest
-        // For pest-control mode, check weapon requirements
-        const canKill = gameMode === 'endless-mode' || selectedTool === hitBug.requiredWeapon;
-        
-        if (canKill) {
-          // Successful kill - play weapon sound at reduced volume
-          if (soundEnabled && !isWeaponMuted(selectedTool)) {
-            const quietVolume = (volume / 100) * 0.5;
-            playSound(selectedTool, quietVolume);
+      
+      // For endless mode, also check if mouse is down to kill pests while holding
+      const shouldCheckForKill = gameMode === 'pest-control' || (gameMode === 'endless-mode' && (event.type === 'click' || isMouseDown));
+      
+      if (shouldCheckForKill) {
+        const hitBug = bugs.find(bug => {
+          // Try weapon hitbox collision first
+          const hitboxCollision = checkCollision(weaponHitbox, bug.x, bug.y);
+          
+          // Fallback to distance check if hitbox collision fails
+          if (!hitboxCollision) {
+            const distance = Math.sqrt(Math.pow(x - bug.x, 2) + Math.pow(y - bug.y, 2));
+            return distance <= 30; // Slightly larger radius for fallback
           }
           
-          killBug(hitBug.id);
+          return hitboxCollision;
+        });
+
+        if (hitBug) {
+          // For endless mode, any weapon can kill any pest
+          // For pest-control mode, check weapon requirements
+          const canKill = gameMode === 'endless-mode' || selectedTool === hitBug.requiredWeapon;
           
-          // Play squish sound after a short delay
-          setTimeout(() => {
-            if (soundEnabled) {
-              playSquishSound();
+          if (canKill) {
+            // Successful kill - play weapon sound at reduced volume
+            if (soundEnabled && !isWeaponMuted(selectedTool)) {
+              const quietVolume = (volume / 100) * 0.5;
+              playSound(selectedTool, quietVolume);
             }
-          }, 100);
-          
-          // Create pest damage effect with random b1, b2, b3 image at bug position
-          createPestDamageEffect(hitBug.x, hitBug.y, setPestDamageEffects);
-          
-          // Create particles for successful hit at bug position
-          createBugParticles(hitBug.x, hitBug.y, selectedTool, getRandomPaintColor, setParticles);
-          
-          // Fire laser beam for pest modes (follows mouse direction)
-          if (selectedTool === 'laser') {
-            const angle = Math.atan2(hitBug.y - y, hitBug.x - x);
-            laserEffect.fireLaser(x, y, angle, 150, gameMode);
-          }
+            
+            killBug(hitBug.id);
+            
+            // Play squish sound after a short delay
+            setTimeout(() => {
+              if (soundEnabled) {
+                playSquishSound();
+              }
+            }, 100);
+            
+            // Create pest damage effect with random b1, b2, b3 image at bug position
+            createPestDamageEffect(hitBug.x, hitBug.y, setPestDamageEffects);
+            
+            // Create particles for successful hit at bug position
+            createBugParticles(hitBug.x, hitBug.y, selectedTool, getRandomPaintColor, setParticles);
+            
+            // Fire laser beam for pest modes (follows mouse direction)
+            if (selectedTool === 'laser') {
+              const angle = Math.atan2(hitBug.y - y, hitBug.x - x);
+              laserEffect.fireLaser(x, y, angle, 150, gameMode);
+            }
 
-          // For endless mode, also create weapon damage effects on the screen for chaos
-          if (gameMode === 'endless-mode') {
-            createDamageEffect(hitBug.x, hitBug.y, selectedTool, lastFlamethrowerDamage, setDamageEffects);
+            // For endless mode, also create weapon damage effects on the screen for chaos
+            if (gameMode === 'endless-mode') {
+              createDamageEffect(hitBug.x, hitBug.y, selectedTool, lastFlamethrowerDamage, setDamageEffects);
+            }
+          } else {
+            // Failed attempt - wrong weapon (only for pest-control mode)
+            attemptKill(hitBug.id);
           }
         } else {
-          // Failed attempt - wrong weapon (only for pest-control mode)
-          attemptKill(hitBug.id);
-        }
-      } else {
-        // Check if there are any compatible pests in the game for this weapon (pest-control mode only)
-        if (gameMode === 'pest-control') {
-          const compatiblePestExists = bugs.some(bug => bug.requiredWeapon === selectedTool);
-          
-          // Play weapon sound if there are compatible pests in the game (missed them)
-          if (compatiblePestExists && soundEnabled && !isWeaponMuted(selectedTool)) {
-            playSound(selectedTool);
+          // Check if there are any compatible pests in the game for this weapon (pest-control mode only)
+          if (gameMode === 'pest-control') {
+            const compatiblePestExists = bugs.some(bug => bug.requiredWeapon === selectedTool);
             
-            // Fire laser beam even on miss for visual feedback
-            if (selectedTool === 'laser') {
-              const randomAngle = Math.random() * Math.PI * 2;
-              laserEffect.fireLaser(x, y, randomAngle, 150, gameMode);
+            // Play weapon sound if there are compatible pests in the game (missed them)
+            if (compatiblePestExists && soundEnabled && !isWeaponMuted(selectedTool)) {
+              playSound(selectedTool);
+              
+              // Fire laser beam even on miss for visual feedback
+              if (selectedTool === 'laser') {
+                const randomAngle = Math.random() * Math.PI * 2;
+                laserEffect.fireLaser(x, y, randomAngle, 150, gameMode);
+              }
             }
-          }
-        } else if (gameMode === 'endless-mode') {
-          // For endless mode, always play sound and create effects even on miss for chaos
-          if (soundEnabled && !isWeaponMuted(selectedTool)) {
-            playSound(selectedTool);
+          } else if (gameMode === 'endless-mode') {
+            // For endless mode, always play sound and create effects even on miss for chaos
+            if (soundEnabled && !isWeaponMuted(selectedTool)) {
+              playSound(selectedTool);
+              
+              // Fire laser beam even on miss
+              if (selectedTool === 'laser') {
+                const randomAngle = Math.random() * Math.PI * 2;
+                laserEffect.fireLaser(x, y, randomAngle, 150, gameMode);
+              }
+            }
             
-            // Fire laser beam even on miss
-            if (selectedTool === 'laser') {
-              const randomAngle = Math.random() * Math.PI * 2;
-              laserEffect.fireLaser(x, y, randomAngle, 150, gameMode);
-            }
+            // Create damage effects even on miss for maximum chaos
+            createDamageEffect(x, y, selectedTool, lastFlamethrowerDamage, setDamageEffects);
+            createParticles(x, y, selectedTool, getRandomPaintColor, setParticles);
           }
-          
-          // Create damage effects even on miss for maximum chaos
-          createDamageEffect(x, y, selectedTool, lastFlamethrowerDamage, setDamageEffects);
-          createParticles(x, y, selectedTool, getRandomPaintColor, setParticles);
         }
       }
     }
-  }, [gameMode, gameStarted, bugs, selectedTool, killBug, attemptKill, soundEnabled, isWeaponMuted, playSound, playSquishSound, createPestDamageEffect, setPestDamageEffects, createBugParticles, setParticles, getWeaponHitbox, checkCollision, volume, laserEffect, createDamageEffect, setDamageEffects, createParticles, getRandomPaintColor, lastFlamethrowerDamage]);
+  }, [gameMode, gameStarted, bugs, selectedTool, killBug, attemptKill, soundEnabled, isWeaponMuted, playSound, playSquishSound, createPestDamageEffect, setPestDamageEffects, createBugParticles, setParticles, getWeaponHitbox, checkCollision, volume, laserEffect, createDamageEffect, setDamageEffects, createParticles, getRandomPaintColor, lastFlamethrowerDamage, isMouseDown]);
 
   // Global mouse up handler to stop sounds when mouse is released outside desktop
   useEffect(() => {

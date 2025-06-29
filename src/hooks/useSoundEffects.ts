@@ -22,8 +22,9 @@ export const useSoundEffects = (volume: number = 0.5, gameMode: GameMode = 'desk
       gunAudio = '/asset/soundeffect/gun2.mp3';
       chainsawAudio = '/asset/soundeffect/chainsaw2.mp3';
     } else if (gameMode === 'endless-mode') {
-      gunAudio = '/asset/soundeffect/gun2.mp3';
-      chainsawAudio = '/asset/soundeffect/chainsaw2.mp3';
+      // Use original sounds for endless mode as requested
+      gunAudio = '/asset/soundeffect/gun.mp3';
+      chainsawAudio = '/asset/soundeffect/chainsaw.wav';
     } else {
       // Desktop destroyer mode uses original sounds
       gunAudio = '/asset/soundeffect/gun.mp3';
@@ -104,8 +105,8 @@ export const useSoundEffects = (volume: number = 0.5, gameMode: GameMode = 'desk
         console.warn('Failed to play sound:', error);
       });
 
-      // For chainsaw in pest modes, make it shorter
-      if (tool === 'chainsaw' && (gameMode === 'pest-control' || gameMode === 'endless-mode')) {
+      // For chainsaw in pest control mode, make it shorter (but not in endless mode)
+      if (tool === 'chainsaw' && gameMode === 'pest-control') {
         // Stop the sound after 0.5 seconds
         setTimeout(() => {
           audio.pause();
