@@ -1,4 +1,5 @@
 import React from 'react';
+import { X } from 'lucide-react';
 import { Bug as BugType, Tool, PestType } from '../../types/game';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -15,6 +16,7 @@ interface PestControlOverlayProps {
   selectedTool: Tool;
   mousePosition: { x: number; y: number };
   PEST_WEAPON_MAP: Record<PestType, Tool>;
+  onExitGame: () => void;
 }
 
 const PestControlOverlay: React.FC<PestControlOverlayProps> = ({ 
@@ -26,7 +28,8 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
   missedAttempts,
   userHighScore,
   onStartGame, 
-  PEST_WEAPON_MAP
+  PEST_WEAPON_MAP,
+  onExitGame
 }) => {
   const { isAuthenticated, user } = useAuth();
 
@@ -100,28 +103,35 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
 
   return (
     <>
-      {/* Timer and Score Display - Top Left Corner (compact) */}
+      {/* Timer, Score Display and Exit Button - Top Left Corner */}
       {gameStarted && !gameEnded && (
         <div className="absolute top-2 left-2 z-50">
-          <div className="bg-gray-800/95 backdrop-blur-sm rounded-lg p-2 shadow-2xl border border-gray-700 min-w-[120px]">
-            <div className="text-center">
+          <div className="bg-gray-800/95 backdrop-blur-sm rounded-lg p-3 shadow-2xl border border-gray-700 min-w-[160px]">
+            <div className="flex items-center justify-between mb-2">
               <div className="text-xl font-bold text-white">
                 {timeLeft}s
               </div>
-              <div className="text-sm font-semibold text-green-400">
-                Score: {score}
-              </div>
-              {userHighScore > 0 && (
-                <div className="text-xs text-blue-400">
-                  Best: {userHighScore}
-                </div>
-              )}
-              {missedAttempts > 0 && (
-                <div className="text-xs text-red-400">
-                  Missed: {missedAttempts}
-                </div>
-              )}
+              <button
+                onClick={onExitGame}
+                className="p-1 rounded bg-red-600/20 hover:bg-red-600/40 transition-colors duration-200 group"
+                title="Exit Game"
+              >
+                <X className="w-4 h-4 text-red-400 group-hover:text-red-300" />
+              </button>
             </div>
+            <div className="text-sm font-semibold text-green-400">
+              Score: {score}
+            </div>
+            {userHighScore > 0 && (
+              <div className="text-xs text-blue-400">
+                Best: {userHighScore}
+              </div>
+            )}
+            {missedAttempts > 0 && (
+              <div className="text-xs text-red-400">
+                Missed: {missedAttempts}
+              </div>
+            )}
           </div>
         </div>
       )}

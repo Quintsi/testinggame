@@ -61,8 +61,8 @@ export const usePestControl = () => {
     
     // Define no-spawn zones for UI elements
     const noSpawnZones = isGameActive ? [
-      // Timer/Score UI in top-left corner (compact)
-      { x: 0, y: 0, width: 140, height: 80 },
+      // Timer/Score UI in top-left corner (expanded to include exit button)
+      { x: 0, y: 0, width: 180, height: 100 },
     ] : [];
     
     const marginLeft = isGameActive ? 20 : 200; // Minimal margin during gameplay

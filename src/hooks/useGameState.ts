@@ -116,5 +116,6 @@ export const useGameState = () => {
     attemptKill,
     toggleWeaponMute,
     isWeaponMuted,
+    resetGame, // Export resetGame for the exit button
   };
 };

@@ -65,6 +65,7 @@ function App() {
     attemptKill,
     toggleWeaponMute,
     isWeaponMuted,
+    resetGame,
   } = useGameState();
 
   const tools: { id: Tool; icon: React.ComponentType; name: string; color: string; keyBinding: string }[] = [
@@ -124,17 +125,23 @@ function App() {
       <div className="h-screen w-screen bg-gray-900 overflow-hidden relative">
         {/* Fixed background image */}
         <div className="bg-fixed-cover" />
-        {/* Login Button - Always visible */}
-        <LoginButton onShowLeaderboard={() => setShowLeaderboard(true)} />
+        
+        {/* Login Button - Hide during active pest control */}
+        {!shouldHideUI && (
+          <LoginButton onShowLeaderboard={() => setShowLeaderboard(true)} />
+        )}
+        
         {/* Leaderboard Modal */}
         <LeaderboardModal 
           isOpen={showLeaderboard} 
           onClose={() => setShowLeaderboard(false)} 
         />
+        
         {/* Game Mode Selector - Hide during active pest control */}
         {!shouldHideUI && (
           <GameModeSelector currentMode={gameMode} onModeChange={handleModeChange} />
         )}
+        
         {/* Tool Sidebar - Hide during active pest control */}
         {!shouldHideUI && (
           <ToolSidebar
@@ -150,6 +157,7 @@ function App() {
             onWeaponMuteToggle={toggleWeaponMute}
           />
         )}
+        
         {/* Desktop Environment */}
         <div className="flex-1 relative">
           {/* Show auth guard only for pest control mode when not authenticated */}
@@ -241,12 +249,14 @@ function App() {
               selectedTool={selectedTool}
               mousePosition={mousePosition}
               PEST_WEAPON_MAP={PEST_WEAPON_MAP}
+              onExitGame={resetGame}
             />
           )}
           
           {/* Particle System */}
           <ParticleSystem particles={particles} />
         </div>
+        
         {/* Instructions - Always show */}
         <InstructionText
           gameMode={gameMode}
