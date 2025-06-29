@@ -80,8 +80,8 @@ function App() {
 
   const toggleSound = () => setSoundEnabled(prev => !prev);
 
-  // Determine if we should hide UI elements (during active pest control or endless mode gameplay)
-  const shouldHideUI = (gameMode === 'pest-control' || gameMode === 'endless-mode') && gameStarted && !gameEnded;
+  // Determine if we should hide UI elements (during active pest control gameplay only)
+  const shouldHideUI = gameMode === 'pest-control' && gameStarted && !gameEnded;
 
   // Check if pest control mode requires authentication (endless mode does NOT require auth)
   const isPestControlModeRestricted = gameMode === 'pest-control' && !isAuthenticated;
@@ -127,7 +127,7 @@ function App() {
         {/* Fixed background image */}
         <div className="bg-fixed-cover" />
         
-        {/* Login Button - Hide during active pest control or endless mode */}
+        {/* Login Button - Hide during active pest control only */}
         {!shouldHideUI && (
           <LoginButton onShowLeaderboard={() => setShowLeaderboard(true)} />
         )}
@@ -138,12 +138,12 @@ function App() {
           onClose={() => setShowLeaderboard(false)} 
         />
         
-        {/* Game Mode Selector - Hide during active pest control or endless mode */}
+        {/* Game Mode Selector - Hide during active pest control only */}
         {!shouldHideUI && (
           <GameModeSelector currentMode={gameMode} onModeChange={handleModeChange} />
         )}
         
-        {/* Tool Sidebar - Hide during active pest control or endless mode */}
+        {/* Tool Sidebar - Hide during active pest control only */}
         {!shouldHideUI && (
           <ToolSidebar
             tools={tools}
@@ -157,6 +157,25 @@ function App() {
             mutedWeapons={mutedWeapons}
             onWeaponMuteToggle={toggleWeaponMute}
           />
+        )}
+        
+        {/* Timer UI for Endless Mode - Only show during active endless mode */}
+        {gameMode === 'endless-mode' && gameStarted && !gameEnded && (
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50">
+            <div className="bg-gray-800/95 backdrop-blur-sm rounded-lg p-3 shadow-2xl border border-gray-700">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-white">
+                  {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+                </div>
+                <div className="text-sm font-semibold text-green-400">
+                  Score: {score}
+                </div>
+                <div className="text-xs text-purple-400">
+                  Bugs: {bugs.length}
+                </div>
+              </div>
+            </div>
+          </div>
         )}
         
         {/* Desktop Environment */}

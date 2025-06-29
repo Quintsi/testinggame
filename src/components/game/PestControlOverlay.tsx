@@ -110,7 +110,7 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
       case 'pest-control':
         return 'Strategic Pest Protocol';
       case 'endless-mode':
-        return 'Endless Pest Protocol';
+        return 'Chaotic Pest Swarm';
       default:
         return 'Strategic Pest Protocol';
     }
@@ -121,7 +121,7 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
       case 'pest-control':
         return 'Each pest requires a specific weapon to kill!';
       case 'endless-mode':
-        return 'Survive endless waves of moving pests converging on the center!';
+        return 'Use any weapon to kill any pest! Survive the endless chaotic swarm!';
       default:
         return 'Each pest requires a specific weapon to kill!';
     }
@@ -132,7 +132,7 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
       case 'pest-control':
         return 'START STRATEGIC HUNT';
       case 'endless-mode':
-        return 'START ENDLESS SURVIVAL';
+        return 'START CHAOTIC SURVIVAL';
       default:
         return 'START STRATEGIC HUNT';
     }
@@ -146,13 +146,13 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
 
   return (
     <>
-      {/* Timer, Score Display and Exit Button - Top Left Corner */}
-      {gameStarted && !gameEnded && (
+      {/* Timer, Score Display and Exit Button - Only show for pest-control mode */}
+      {gameMode === 'pest-control' && gameStarted && !gameEnded && (
         <div className="absolute top-2 left-2 z-50">
           <div className="bg-gray-800/95 backdrop-blur-sm rounded-lg p-3 shadow-2xl border border-gray-700 min-w-[160px]">
             <div className="flex items-center justify-between mb-2">
               <div className="text-xl font-bold text-white">
-                {gameMode === 'endless-mode' ? formatTime(timeLeft) : `${timeLeft}s`}
+                {timeLeft}s
               </div>
               <button
                 onClick={onExitGame}
@@ -165,11 +165,6 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
             <div className="text-sm font-semibold text-green-400">
               Score: {score}
             </div>
-            {gameMode === 'endless-mode' && (
-              <div className="text-xs text-purple-400">
-                Bugs: {bugs.length}
-              </div>
-            )}
             {userHighScore > 0 && (
               <div className="text-xs text-blue-400">
                 Best: {userHighScore}
@@ -194,12 +189,13 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
             {/* Endless Mode Specific Instructions */}
             {gameMode === 'endless-mode' && (
               <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-4 mb-6">
-                <h3 className="text-lg font-bold text-red-400 mb-2">⚠️ Survival Rules</h3>
+                <h3 className="text-lg font-bold text-red-400 mb-2">🔥 Chaos Rules</h3>
                 <div className="text-sm text-red-300 space-y-1">
-                  <p>• Pests spawn from screen edges and move toward the center</p>
+                  <p>• Any weapon kills any pest - no restrictions!</p>
+                  <p>• Pests spawn from edges and move toward center</p>
                   <p>• If ANY pest reaches the center, you lose!</p>
                   <p>• More pests spawn as time goes on</p>
-                  <p>• Each pest type has unique movement patterns</p>
+                  <p>• Weapon effects stay on screen for maximum chaos!</p>
                 </div>
               </div>
             )}
@@ -254,24 +250,35 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
               </div>
             )}
             
-            {/* Weapon Guide */}
-            <div className="bg-gray-800/90 rounded-xl p-6 mb-8">
-              <h3 className="text-lg font-semibold text-white mb-4">Pest → Weapon Guide</h3>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                {getWeaponGuideOrder().map(({ pest, weapon }) => (
-                  <div key={pest} className="flex justify-between items-center bg-gray-700/50 rounded-lg p-2">
-                    <span className="text-gray-300 capitalize font-medium">{getPestName(pest)}</span>
-                    <span className={`font-semibold ${getWeaponColor(weapon)}`}>
-                      {getWeaponName(weapon)}
-                    </span>
+            {/* Weapon Guide - Only show for pest-control mode */}
+            {gameMode === 'pest-control' && (
+              <>
+                <div className="bg-gray-800/90 rounded-xl p-6 mb-8">
+                  <h3 className="text-lg font-semibold text-white mb-4">Pest → Weapon Guide</h3>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    {getWeaponGuideOrder().map(({ pest, weapon }) => (
+                      <div key={pest} className="flex justify-between items-center bg-gray-700/50 rounded-lg p-2">
+                        <span className="text-gray-300 capitalize font-medium">{getPestName(pest)}</span>
+                        <span className={`font-semibold ${getWeaponColor(weapon)}`}>
+                          {getWeaponName(weapon)}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
-            
-            <p className="text-lg text-gray-400 mb-8">
-              Switch weapons quickly using keys 1-6. Wrong weapon = no kill!
-            </p>
+                </div>
+                
+                <p className="text-lg text-gray-400 mb-8">
+                  Switch weapons quickly using keys 1-6. Wrong weapon = no kill!
+                </p>
+              </>
+            )}
+
+            {/* For endless mode, show chaos instructions */}
+            {gameMode === 'endless-mode' && (
+              <p className="text-lg text-gray-400 mb-8">
+                Switch weapons using keys 1-6. Create maximum chaos with any weapon!
+              </p>
+            )}
             
             <button
               onClick={onStartGame}
@@ -303,7 +310,7 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
                   Survived {formatTime(timeLeft)}
                 </div>
               )}
-              {missedAttempts > 0 && (
+              {missedAttempts > 0 && gameMode === 'pest-control' && (
                 <div className="text-lg text-red-400 mt-2">
                   {missedAttempts} Wrong Weapon{missedAttempts !== 1 ? 's' : ''}
                 </div>
@@ -330,17 +337,17 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
             <div className="mb-6">
               {score >= 25 && (
                 <div className="text-yellow-400 font-semibold text-lg">
-                  🏆 Pest Protocol Master!
+                  🏆 {gameMode === 'endless-mode' ? 'Chaos Master!' : 'Pest Protocol Master!'}
                 </div>
               )}
               {score >= 20 && score < 25 && (
                 <div className="text-blue-400 font-semibold text-lg">
-                  🎯 Strategic Hunter!
+                  🎯 {gameMode === 'endless-mode' ? 'Chaos Warrior!' : 'Strategic Hunter!'}
                 </div>
               )}
               {score >= 15 && score < 20 && (
                 <div className="text-green-400 font-semibold text-lg">
-                  ✨ Quick Switcher!
+                  ✨ {gameMode === 'endless-mode' ? 'Chaos Creator!' : 'Quick Switcher!'}
                 </div>
               )}
               {score >= 10 && score < 15 && (
@@ -350,7 +357,7 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
               )}
               {score < 10 && (
                 <div className="text-gray-400 font-semibold text-lg">
-                  🎮 Practice Weapon Switching!
+                  🎮 {gameMode === 'endless-mode' ? 'Practice Chaos!' : 'Practice Weapon Switching!'}
                 </div>
               )}
             </div>
@@ -359,7 +366,7 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
               onClick={onStartGame}
               className="bg-green-600 hover:bg-green-700 text-white font-bold text-xl px-8 py-4 rounded-xl shadow-xl transition-all duration-200 transform hover:scale-105"
             >
-              {gameMode === 'endless-mode' ? 'Survive Again' : 'Hunt Again'}
+              {gameMode === 'endless-mode' ? 'Create Chaos Again' : 'Hunt Again'}
             </button>
           </div>
         </div>
@@ -384,16 +391,18 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
             className="w-full h-full object-contain hover:scale-110 transition-transform duration-150 pointer-events-none"
           />
           
-          {/* Visual indicator for required weapon */}
-          <div className="absolute -top-2 -right-2 w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold bg-gray-800 border-2 border-gray-600">
-            <span className={`${getWeaponColor(bug.requiredWeapon)}`}>
-              {bug.requiredWeapon === 'hammer' ? '1' : 
-               bug.requiredWeapon === 'gun' ? '2' :
-               bug.requiredWeapon === 'flamethrower' ? '3' :
-               bug.requiredWeapon === 'laser' ? '4' :
-               bug.requiredWeapon === 'paintball' ? '5' : '6'}
-            </span>
-          </div>
+          {/* Visual indicator for required weapon - Only show in pest-control mode */}
+          {gameMode === 'pest-control' && (
+            <div className="absolute -top-2 -right-2 w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold bg-gray-800 border-2 border-gray-600">
+              <span className={`${getWeaponColor(bug.requiredWeapon)}`}>
+                {bug.requiredWeapon === 'hammer' ? '1' : 
+                 bug.requiredWeapon === 'gun' ? '2' :
+                 bug.requiredWeapon === 'flamethrower' ? '3' :
+                 bug.requiredWeapon === 'laser' ? '4' :
+                 bug.requiredWeapon === 'paintball' ? '5' : '6'}
+              </span>
+            </div>
+          )}
         </div>
       ))}
     </>

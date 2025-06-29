@@ -54,8 +54,8 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
     };
 
     const getCursor = () => {
-      if (gameMode === 'pest-control' || gameMode === 'endless-mode') {
-        return 'cursor-none'; // Hide cursor completely in pest modes
+      if (gameMode === 'pest-control') {
+        return 'cursor-none'; // Hide cursor completely in pest control mode
       }
       if (selectedTool === 'laser' || selectedTool === 'gun' || selectedTool === 'hammer' || selectedTool === 'flamethrower' || selectedTool === 'chainsaw' || selectedTool === 'paintball') {
         return 'cursor-none'; // Hide default cursor for weapons
@@ -305,11 +305,15 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
           </div>
         </div>
 
-        {/* Damage Overlay - Only show in desktop destroyer mode */}
-        {gameMode === 'desktop-destroyer' && <DamageOverlay effects={damageEffects} chainsawPaths={chainsawPaths} />}
+        {/* Damage Overlay - Show in desktop destroyer mode AND endless mode */}
+        {(gameMode === 'desktop-destroyer' || gameMode === 'endless-mode') && (
+          <DamageOverlay effects={damageEffects} chainsawPaths={chainsawPaths} />
+        )}
         
-        {/* Pest Damage Overlay - Show in pest modes */}
-        {(gameMode === 'pest-control' || gameMode === 'endless-mode') && <DamageOverlay effects={[]} chainsawPaths={[]} pestDamageEffects={pestDamageEffects} />}
+        {/* Pest Damage Overlay - Show in all pest modes */}
+        {(gameMode === 'pest-control' || gameMode === 'endless-mode') && (
+          <DamageOverlay effects={[]} chainsawPaths={[]} pestDamageEffects={pestDamageEffects} />
+        )}
       </div>
     );
   }

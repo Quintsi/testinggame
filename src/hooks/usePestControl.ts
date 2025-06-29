@@ -61,16 +61,17 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
     // When UI is visible, account for sidebar and other elements
     const isGameActive = gameStarted && !gameEnded;
     
-    // Define no-spawn zones for UI elements
-    const noSpawnZones = isGameActive ? [
+    // Define no-spawn zones for UI elements - only for pest-control mode
+    const noSpawnZones = (isGameActive && gameMode === 'pest-control') ? [
       // Timer/Score UI in top-left corner (expanded to include exit button)
       { x: 0, y: 0, width: 180, height: 100 },
     ] : [];
     
-    const marginLeft = isGameActive ? 20 : 200; // Minimal margin during gameplay
-    const marginRight = isGameActive ? 20 : 50;
-    const marginTop = isGameActive ? 20 : 100;
-    const marginBottom = isGameActive ? 60 : 100; // Account for taskbar
+    // For endless mode, use normal margins since UI is visible
+    const marginLeft = (gameMode === 'endless-mode') ? 200 : (isGameActive ? 20 : 200);
+    const marginRight = (gameMode === 'endless-mode') ? 50 : (isGameActive ? 20 : 50);
+    const marginTop = (gameMode === 'endless-mode') ? 100 : (isGameActive ? 20 : 100);
+    const marginBottom = (gameMode === 'endless-mode') ? 100 : (isGameActive ? 60 : 100);
     
     const pestSize = 40; // Pest image size (width and height)
     const availableWidth = screenWidth - marginLeft - marginRight - pestSize;
@@ -232,7 +233,7 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
       speed,
       lastMoveTime: Date.now(),
     };
-  }, [gameStarted, gameEnded, getRandomPestType]);
+  }, [gameStarted, gameEnded, getRandomPestType, gameMode]);
 
   const startGame = useCallback((setPestDamageEffects?: React.Dispatch<React.SetStateAction<any[]>>) => {
     const startTime = Date.now();
@@ -301,26 +302,34 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
     const targetBug = bugs.find(bug => bug.id === bugId);
     if (!targetBug) return false;
 
-    // Check if the correct weapon was used
+    // In endless mode, any weapon can kill any pest (no weapon requirements)
+    if (gameMode === 'endless-mode') {
+      // Successful kill - any weapon works
+      setBugs(prev => prev.filter(bug => bug.id !== bugId));
+      setScore(prev => prev + 1);
+      
+      // Immediately spawn a new bug to replace the killed one
+      if (gameStarted && !gameEnded) {
+        const newBug = createBug(true);
+        setBugs(prev => [...prev, newBug]);
+      }
+      return true;
+    }
+
+    // For pest-control mode, check if the correct weapon was used
     if (weaponUsed === targetBug.requiredWeapon) {
       // Successful kill
       setBugs(prev => prev.filter(bug => bug.id !== bugId));
       setScore(prev => prev + 1);
       
       // Only continue spawning if the game is still active
-      if (gameStarted && !gameEnded) {
-        if (gameMode === 'endless-mode') {
-          // In endless mode, immediately spawn a new bug to replace the killed one
-          const newBug = createBug(true);
-          setBugs(prev => [...prev, newBug]);
-        } else if (hiddenBug) {
-          // Pest control mode - immediately show the pre-loaded hidden bug
-          setBugs([hiddenBug]);
-          
-          // Pre-load the next hidden bug for instant spawning
-          const nextHiddenBug = createBug(false);
-          setHiddenBug(nextHiddenBug);
-        }
+      if (gameStarted && !gameEnded && hiddenBug) {
+        // Immediately show the pre-loaded hidden bug
+        setBugs([hiddenBug]);
+        
+        // Pre-load the next hidden bug for instant spawning
+        const nextHiddenBug = createBug(false);
+        setHiddenBug(nextHiddenBug);
       }
       return true;
     } else {
