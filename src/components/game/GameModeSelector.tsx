@@ -25,7 +25,7 @@ const GameModeSelector: React.FC<GameModeSelectorProps> = ({ currentMode, onMode
       id: 'endless-mode' as GameMode,
       name: 'Endless Mode',
       icon: Infinity,
-      description: 'Survive endless waves of moving pests (Login required)'
+      description: 'Survive endless waves of moving pests'
     }
   ];
 

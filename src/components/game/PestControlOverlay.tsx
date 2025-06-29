@@ -180,25 +180,52 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
             <h2 className="text-4xl font-bold text-white mb-4">{getGameModeTitle()}</h2>
             <p className="text-xl text-gray-300 mb-4">{getGameModeDescription()}</p>
             
-            {/* Authentication Status */}
-            {isAuthenticated && user ? (
-              <div className="bg-green-600/20 border border-green-500/30 rounded-lg p-3 mb-6">
-                <div className="flex items-center justify-center space-x-2 text-green-400">
-                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                  <span className="text-sm font-medium">
-                    Signed in as {user.displayName} - Scores will be saved!
-                  </span>
-                </div>
-                {userHighScore > 0 && (
-                  <div className="text-green-300 text-sm mt-1">
-                    Your best score: {userHighScore} pests
+            {/* Authentication Status - Only show for pest-control mode */}
+            {gameMode === 'pest-control' && (
+              <>
+                {isAuthenticated && user ? (
+                  <div className="bg-green-600/20 border border-green-500/30 rounded-lg p-3 mb-6">
+                    <div className="flex items-center justify-center space-x-2 text-green-400">
+                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                      <span className="text-sm font-medium">
+                        Signed in as {user.displayName} - Scores will be saved!
+                      </span>
+                    </div>
+                    {userHighScore > 0 && (
+                      <div className="text-green-300 text-sm mt-1">
+                        Your best score: {userHighScore} pests
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="bg-yellow-600/20 border border-yellow-500/30 rounded-lg p-3 mb-6">
+                    <div className="text-yellow-400 text-sm">
+                      Sign in with Google to save your scores and compete on the leaderboard!
+                    </div>
                   </div>
                 )}
-              </div>
-            ) : (
-              <div className="bg-yellow-600/20 border border-yellow-500/30 rounded-lg p-3 mb-6">
-                <div className="text-yellow-400 text-sm">
-                  Sign in with Google to save your scores and compete on the leaderboard!
+              </>
+            )}
+
+            {/* For endless mode, show different messaging */}
+            {gameMode === 'endless-mode' && (
+              <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-3 mb-6">
+                <div className="text-blue-400 text-sm">
+                  {isAuthenticated && user ? (
+                    <>
+                      <div className="flex items-center justify-center space-x-2">
+                        <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                        <span>Signed in as {user.displayName} - Scores will be saved!</span>
+                      </div>
+                      {userHighScore > 0 && (
+                        <div className="text-blue-300 text-sm mt-1">
+                          Your best score: {userHighScore} pests
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    'No login required! Sign in with Google to save your scores and compete on the leaderboard.'
+                  )}
                 </div>
               </div>
             )}
@@ -259,7 +286,7 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
               )}
             </div>
 
-            {/* High Score Display */}
+            {/* High Score Display - Only show if authenticated */}
             {isAuthenticated && (
               <div className="mb-6">
                 {score > userHighScore ? (
