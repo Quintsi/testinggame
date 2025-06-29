@@ -140,7 +140,7 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
       {!gameStarted && !gameEnded && (
         <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-40">
           <div className="text-center max-w-2xl mx-auto px-4">
-            <h2 className="text-4xl font-bold text-white mb-4">Strategic Pest Control</h2>
+            <h2 className="text-4xl font-bold text-white mb-4">Strategic Pest Protocol</h2>
             <p className="text-xl text-gray-300 mb-4">Each pest requires a specific weapon to kill!</p>
             
             {/* Authentication Status */}
@@ -235,7 +235,7 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
             <div className="mb-6">
               {score >= 25 && (
                 <div className="text-yellow-400 font-semibold text-lg">
-                  🏆 Pest Control Master!
+                  🏆 Pest Protocol Master!
                 </div>
               )}
               {score >= 20 && score < 25 && (

@@ -294,7 +294,7 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
               <div className="bg-gray-700 text-white px-3 py-1 rounded text-sm">Notepad</div>
             )}
             {gameMode === 'pest-control' && (
-              <div className="bg-gray-700 text-white px-3 py-1 rounded text-sm">Pest Control</div>
+              <div className="bg-gray-700 text-white px-3 py-1 rounded text-sm">Pest Protocol</div>
             )}
           </div>
           <div className="text-white text-sm">

@@ -17,7 +17,7 @@ const GameModeSelector: React.FC<GameModeSelectorProps> = ({ currentMode, onMode
     },
     {
       id: 'pest-control' as GameMode,
-      name: 'Pest Control',
+      name: 'Pest Protocol',
       icon: Bug,
       description: 'Hunt down bugs on the screen (Login required)'
     }

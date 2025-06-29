@@ -1,12 +1,12 @@
 # Testing Game
 
-A fun interactive game with two modes: Desktop Destroyer and Pest Control.
+A fun interactive game with two modes: Desktop Destroyer and Pest Protocol.
 
 ## Features
 
 ### Game Modes
 - **Desktop Destroyer**: Destroy your desktop with various tools (hammer, gun, flamethrower, laser, paintball, chainsaw)
-- **Pest Control**: Eliminate bugs and compete on the global leaderboard
+- **Pest Protocol**: Eliminate bugs and compete on the global leaderboard
 
 ### Authentication
 - **Google Sign-In**: Secure authentication using Google OAuth
