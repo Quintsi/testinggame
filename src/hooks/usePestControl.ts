@@ -30,7 +30,6 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
   const [missedAttempts, setMissedAttempts] = useState(0);
   const [userHighScore, setUserHighScore] = useState(0);
   const [gameStartTime, setGameStartTime] = useState<number>(0);
-  const [gameDuration, setGameDuration] = useState<number>(30); // Total game duration in seconds
   const [wave, setWave] = useState(1);
   const [elapsedTime, setElapsedTime] = useState(0); // Timer counting up for endless mode
   const [screenTooSmall, setScreenTooSmall] = useState(false);
@@ -99,6 +98,16 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
         y: 0,
         width: 180 + 10, // UI width + buffer
         height: 100 + 10  // UI height + buffer
+      });
+    }
+
+    if (gameMode === 'endless-mode' && isGameActive) {
+      // Timer/Score UI in top-left corner for endless mode (expanded + 10px buffer)
+      noSpawnZones.push({
+        x: 0,
+        y: 0,
+        width: 200 + 10, // UI width + buffer
+        height: 120 + 10  // UI height + buffer
       });
     }
     
@@ -303,11 +312,10 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
     setGameStarted(true);
     setGameEnded(false);
     setScore(0);
-    setTimeLeft(gameMode === 'endless-mode' ? 0 : 30);
+    setTimeLeft(gameMode === 'endless-mode' ? 0 : 30); // Start at 0 for endless, 30 for pest-control
     setElapsedTime(0);
     setMissedAttempts(0);
     setGameStartTime(startTime);
-    setGameDuration(gameMode === 'endless-mode' ? 0 : 30);
     setWave(1);
     
     // Clear pest damage effects when starting new game
@@ -427,37 +435,36 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
     setBugs([]);
     setHiddenBug(null);
     setScore(0);
-    setTimeLeft(gameMode === 'endless-mode' ? 0 : 30);
+    setTimeLeft(gameMode === 'endless-mode' ? 0 : 30); // Reset to 0 for endless, 30 for pest-control
     setElapsedTime(0);
     setMissedAttempts(0);
     setWave(1);
   }, [gameMode]);
 
-  // Timer effect - countdown for pest-control, count up for endless-mode
+  // Timer effect - countdown for pest-control (1 second intervals), count up for endless-mode (1 second intervals)
   useEffect(() => {
     if (!gameStarted || gameEnded) return;
 
     const timer = setInterval(() => {
-      const elapsedSeconds = Math.floor((Date.now() - gameStartTime) / 1000);
-      
       if (gameMode === 'endless-mode') {
-        // Count up for endless mode - update every 1 second
-        setElapsedTime(elapsedSeconds);
-        setTimeLeft(elapsedSeconds); // Use timeLeft to store elapsed time for endless mode
+        // Count up for endless mode - increment by 1 second
+        setTimeLeft(prev => prev + 1);
+        setElapsedTime(prev => prev + 1);
       } else {
-        // Count down for pest control mode
-        const remainingTime = Math.max(0, gameDuration - elapsedSeconds);
-        setTimeLeft(remainingTime);
-        
-        if (remainingTime <= 0) {
-          endGame();
-          clearInterval(timer);
-        }
+        // Count down for pest control mode - decrement by 1 second
+        setTimeLeft(prev => {
+          const newTime = prev - 1;
+          if (newTime <= 0) {
+            endGame();
+            return 0;
+          }
+          return newTime;
+        });
       }
-    }, 1000); // Update every 1 second for endless mode timer
+    }, 1000); // Update every 1 second for both modes
 
     return () => clearInterval(timer);
-  }, [gameStarted, gameEnded, gameStartTime, gameDuration, endGame, gameMode]);
+  }, [gameStarted, gameEnded, gameMode, endGame]);
 
   // Bug spawning effect for endless mode - spawn more bugs as time goes on
   useEffect(() => {
@@ -633,7 +640,7 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
     gameStarted,
     gameEnded,
     score,
-    timeLeft: gameMode === 'endless-mode' ? elapsedTime : timeLeft, // Return elapsed time for endless mode
+    timeLeft, // For pest-control: counts down from 30, for endless: counts up from 0
     missedAttempts,
     userHighScore,
     wave,

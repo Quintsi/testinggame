@@ -191,7 +191,7 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
                 className="px-2 py-1 rounded bg-red-600/20 hover:bg-red-600/40 transition-colors duration-200 group text-xs"
                 title="Exit Game"
               >
-                <span className="text-red-400 group-hover:text-red-300 font-medium">Exit Game</span>
+                <span className="text-red-400 group-hover:text-red-300 font-medium">Exit</span>
               </button>
             </div>
             <div className="text-sm font-semibold text-green-400">
@@ -228,6 +228,7 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
                   <p>• Infinite survival - no game over!</p>
                   <p>• More pests spawn as time goes on</p>
                   <p>• Weapon effects stay on screen for maximum chaos!</p>
+                  <p>• <strong>Click and hold</strong> to kill pests continuously!</p>
                 </div>
               </div>
             )}
@@ -308,7 +309,7 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
             {/* For endless mode, show chaos instructions */}
             {gameMode === 'endless-mode' && (
               <p className="text-lg text-gray-400 mb-8">
-                Switch weapons using keys 1-6. Create maximum chaos with any weapon!
+                Switch weapons using keys 1-6. <strong>Click and hold</strong> to kill pests continuously!
               </p>
             )}
             
