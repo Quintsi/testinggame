@@ -192,8 +192,8 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
                 <h3 className="text-lg font-bold text-red-400 mb-2">🔥 Chaos Rules</h3>
                 <div className="text-sm text-red-300 space-y-1">
                   <p>• Any weapon kills any pest - no restrictions!</p>
-                  <p>• Pests spawn from edges and move toward center</p>
-                  <p>• If ANY pest reaches the center, you lose!</p>
+                  <p>• Pests spawn from edges and move with unique patterns</p>
+                  <p>• Infinite survival - no game over!</p>
                   <p>• More pests spawn as time goes on</p>
                   <p>• Weapon effects stay on screen for maximum chaos!</p>
                 </div>
@@ -290,13 +290,11 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
         </div>
       )}
 
-      {/* Game Over Screen */}
-      {gameEnded && (
+      {/* Game Over Screen - REMOVED for endless mode since there's no game over */}
+      {gameEnded && gameMode !== 'endless-mode' && (
         <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-40">
           <div className="bg-gray-800/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-gray-600 text-center max-w-md">
-            <h2 className="text-4xl font-bold text-white mb-4">
-              {gameMode === 'endless-mode' ? 'Overrun!' : "Time's Up!"}
-            </h2>
+            <h2 className="text-4xl font-bold text-white mb-4">Time's Up!</h2>
             
             <div className="mb-6">
               <div className="text-6xl font-bold text-green-400 mb-2">
@@ -305,11 +303,6 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
               <div className="text-xl text-gray-300">
                 {score === 1 ? 'Pest Eliminated' : 'Pests Eliminated'}
               </div>
-              {gameMode === 'endless-mode' && (
-                <div className="text-lg text-blue-400 mt-2">
-                  Survived {formatTime(timeLeft)}
-                </div>
-              )}
               {missedAttempts > 0 && gameMode === 'pest-control' && (
                 <div className="text-lg text-red-400 mt-2">
                   {missedAttempts} Wrong Weapon{missedAttempts !== 1 ? 's' : ''}
@@ -337,17 +330,17 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
             <div className="mb-6">
               {score >= 25 && (
                 <div className="text-yellow-400 font-semibold text-lg">
-                  🏆 {gameMode === 'endless-mode' ? 'Chaos Master!' : 'Pest Protocol Master!'}
+                  🏆 Pest Protocol Master!
                 </div>
               )}
               {score >= 20 && score < 25 && (
                 <div className="text-blue-400 font-semibold text-lg">
-                  🎯 {gameMode === 'endless-mode' ? 'Chaos Warrior!' : 'Strategic Hunter!'}
+                  🎯 Strategic Hunter!
                 </div>
               )}
               {score >= 15 && score < 20 && (
                 <div className="text-green-400 font-semibold text-lg">
-                  ✨ {gameMode === 'endless-mode' ? 'Chaos Creator!' : 'Quick Switcher!'}
+                  ✨ Quick Switcher!
                 </div>
               )}
               {score >= 10 && score < 15 && (
@@ -357,7 +350,7 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
               )}
               {score < 10 && (
                 <div className="text-gray-400 font-semibold text-lg">
-                  🎮 {gameMode === 'endless-mode' ? 'Practice Chaos!' : 'Practice Weapon Switching!'}
+                  🎮 Practice Weapon Switching!
                 </div>
               )}
             </div>
@@ -366,7 +359,7 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
               onClick={onStartGame}
               className="bg-green-600 hover:bg-green-700 text-white font-bold text-xl px-8 py-4 rounded-xl shadow-xl transition-all duration-200 transform hover:scale-105"
             >
-              {gameMode === 'endless-mode' ? 'Create Chaos Again' : 'Hunt Again'}
+              Hunt Again
             </button>
           </div>
         </div>

@@ -378,7 +378,7 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
       const elapsedSeconds = Math.floor((Date.now() - gameStartTime) / 1000);
       
       if (gameMode === 'endless-mode') {
-        // Count up for endless mode
+        // Count up for endless mode - update every 1 second
         setElapsedTime(elapsedSeconds);
         setTimeLeft(elapsedSeconds); // Use timeLeft to store elapsed time for endless mode
       } else {
@@ -391,7 +391,7 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
           clearInterval(timer);
         }
       }
-    }, 100); // Check every 100ms for more precise timing
+    }, 1000); // Update every 1 second for endless mode timer
 
     return () => clearInterval(timer);
   }, [gameStarted, gameEnded, gameStartTime, gameDuration, endGame, gameMode]);
@@ -547,15 +547,8 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
           if (newY < -40) newY = window.innerHeight + 40;
           if (newY > window.innerHeight + 40) newY = -40;
           
-          // Check if bug reached the center (game over condition)
-          const distanceToCenter = Math.sqrt(
-            Math.pow(newX - centerX, 2) + Math.pow(newY - centerY, 2)
-          );
-          
-          // If any bug reaches within 30 pixels of center, end game
-          if (distanceToCenter <= 30) {
-            setTimeout(() => endGame(), 100); // Small delay to show the bug reaching center
-          }
+          // NO GAME OVER CONDITION - bugs can reach center without ending the game
+          // This allows for infinite gameplay as requested
           
           return {
             ...bug,
@@ -570,7 +563,7 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
     }, 16); // ~60fps movement
 
     return () => clearInterval(moveInterval);
-  }, [gameStarted, gameEnded, gameMode, endGame]);
+  }, [gameStarted, gameEnded, gameMode]);
 
   return {
     bugs,

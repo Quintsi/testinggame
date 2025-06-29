@@ -80,8 +80,9 @@ function App() {
 
   const toggleSound = () => setSoundEnabled(prev => !prev);
 
-  // Determine if we should hide UI elements (during active pest control gameplay only)
-  const shouldHideUI = gameMode === 'pest-control' && gameStarted && !gameEnded;
+  // Determine if we should hide UI elements (during active pest control gameplay AND when endless mode is started)
+  const shouldHideUI = (gameMode === 'pest-control' && gameStarted && !gameEnded) || 
+                       (gameMode === 'endless-mode' && gameStarted && !gameEnded);
 
   // Check if pest control mode requires authentication (endless mode does NOT require auth)
   const isPestControlModeRestricted = gameMode === 'pest-control' && !isAuthenticated;
@@ -134,8 +135,8 @@ function App() {
         {/* Fixed background image */}
         <div className="bg-fixed-cover" />
         
-        {/* Login Button - Hide during active pest control AND endless mode */}
-        {!shouldHideUI && gameMode !== 'endless-mode' && (
+        {/* Login Button - Hide during active pest control AND endless mode when started */}
+        {!shouldHideUI && (
           <LoginButton onShowLeaderboard={() => setShowLeaderboard(true)} />
         )}
         
@@ -145,13 +146,13 @@ function App() {
           onClose={() => setShowLeaderboard(false)} 
         />
         
-        {/* Game Mode Selector - Hide during active pest control AND endless mode */}
-        {!shouldHideUI && gameMode !== 'endless-mode' && (
+        {/* Game Mode Selector - Hide during active pest control AND endless mode when started */}
+        {!shouldHideUI && (
           <GameModeSelector currentMode={gameMode} onModeChange={handleModeChange} />
         )}
         
         {/* Tool Sidebar - Hide during active pest control only */}
-        {!shouldHideUI && (
+        {!(gameMode === 'pest-control' && gameStarted && !gameEnded) && (
           <ToolSidebar
             tools={tools}
             selectedTool={selectedTool}
