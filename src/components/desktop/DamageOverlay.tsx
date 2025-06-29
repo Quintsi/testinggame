@@ -113,17 +113,8 @@ const DamageOverlay: React.FC<DamageOverlayProps> = ({ effects, chainsawPaths, p
       }
 
       case 'chainsaw':
-        // Create small paint-like dots for pencil effect
-        return {
-          ...baseStyle,
-          width: 8,
-          height: 8,
-          left: effect.x - 4,
-          top: effect.y - 4,
-          background: effect.color || '#8B4513',
-          borderRadius: '50%',
-          opacity: 0.9,
-        };
+        // Chainsaw uses path drawing instead of circular effects
+        return undefined;
       
       default:
         return baseStyle;

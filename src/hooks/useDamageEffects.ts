@@ -19,6 +19,8 @@ export const useDamageEffects = () => {
     lastFlamethrowerDamage: React.MutableRefObject<{ x: number; y: number } | null>,
     setDamageEffects: React.Dispatch<React.SetStateAction<DamageEffect[]>>
   ) => {
+    if (selectedTool === 'chainsaw') return;
+
     // Flamethrower distance check
     if (selectedTool === 'flamethrower') {
       if (lastFlamethrowerDamage.current) {
@@ -37,7 +39,7 @@ export const useDamageEffects = () => {
       x, y,
       tool: selectedTool,
       timestamp: Date.now(),
-      color: selectedTool === 'paintball' || selectedTool === 'chainsaw' ? getRandomPaintColor() : undefined,
+      color: selectedTool === 'paintball' ? getRandomPaintColor() : undefined,
     };
     setDamageEffects(prev => [...prev, newDamage]);
   }, []);
@@ -67,4 +69,4 @@ export const useDamageEffects = () => {
     createPestDamageEffect,
     getRandomPaintColor,
   };
-};
+}; 

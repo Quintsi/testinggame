@@ -37,19 +37,28 @@ export const useMouseHandlers = (
     return () => document.removeEventListener('keydown', handleKeyPress);
   }, []);
 
-  // Continuous damage effects while mouse is held down for gun in desktop destroyer mode
+  // Continuous damage effects while mouse is held down
   useEffect(() => {
     if (isMouseDown && gameMode === 'desktop-destroyer' && selectedTool === 'gun' && createDamageEffect && setDamageEffects && lastFlamethrowerDamage) {
+      const now = Date.now();
+      const timeSinceLastDamage = now - lastDamageTimeRef.current;
+      
+      // Gun fires continuously while held down
       const gunInterval = 100; // 10 shots per second
       
+      if (timeSinceLastDamage >= gunInterval) {
+        createDamageEffect(mousePosition.x, mousePosition.y, selectedTool, lastFlamethrowerDamage, setDamageEffects);
+        lastDamageTimeRef.current = now;
+      }
+
       // Set up interval for continuous gun fire
       damageIntervalRef.current = setInterval(() => {
-        const now = Date.now();
-        const timeSinceLastDamage = now - lastDamageTimeRef.current;
+        const currentTime = Date.now();
+        const timeSinceLast = currentTime - lastDamageTimeRef.current;
         
-        if (timeSinceLastDamage >= gunInterval) {
+        if (timeSinceLast >= gunInterval) {
           createDamageEffect(mousePosition.x, mousePosition.y, selectedTool, lastFlamethrowerDamage, setDamageEffects);
-          lastDamageTimeRef.current = now;
+          lastDamageTimeRef.current = currentTime;
         }
       }, gunInterval);
 
@@ -96,30 +105,13 @@ export const useMouseHandlers = (
             
             return newPath;
           });
-
-          // Create damage effects along the chainsaw path for pencil-like effect
-          if (createDamageEffect && setDamageEffects && lastFlamethrowerDamage) {
-            createDamageEffect(newPosition.x, newPosition.y, 'chainsaw', lastFlamethrowerDamage, setDamageEffects);
-          }
-        }
-
-        // Create continuous damage effects for gun when dragging in desktop destroyer mode
-        if (isMouseDown && selectedTool === 'gun' && gameMode === 'desktop-destroyer' && createDamageEffect && setDamageEffects && lastFlamethrowerDamage) {
-          const now = Date.now();
-          const timeSinceLastDamage = now - lastDamageTimeRef.current;
-          const gunInterval = 50; // Faster when dragging for continuous effect
-          
-          if (timeSinceLastDamage >= gunInterval) {
-            createDamageEffect(newPosition.x, newPosition.y, selectedTool, lastFlamethrowerDamage, setDamageEffects);
-            lastDamageTimeRef.current = now;
-          }
         }
       }
     };
 
     document.addEventListener('mousemove', handleMouseMove);
     return () => document.removeEventListener('mousemove', handleMouseMove);
-  }, [isMouseDown, selectedTool, gameMode, setMousePosition, setChainsawPath, setChainsawPaths, desktopRef, createDamageEffect, setDamageEffects, lastFlamethrowerDamage]);
+  }, [isMouseDown, selectedTool, gameMode, setMousePosition, setChainsawPath, setChainsawPaths, desktopRef]);
 
   const getWeaponHitbox = useCallback((x: number, y: number, tool: Tool) => {
     // In pest modes, center the hitbox on the cursor position
