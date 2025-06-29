@@ -66,6 +66,10 @@ export const useDesktopInteraction = ({
 
   const { laserEffect, gameClock } = useGameClockContext();
 
+  // Continuous attack tracking for chainsaw and gun in endless mode
+  const lastContinuousAttackRef = useRef<number>(0);
+  const killedBugsRef = useRef<Set<number>>(new Set());
+
   // Flamethrower effect with game clock integration
   const handleFlamethrowerParticles = useCallback((x: number, y: number) => {
     console.log('Flamethrower particles emitted at:', x, y, 'gameMode:', gameMode);
@@ -85,6 +89,86 @@ export const useDesktopInteraction = ({
     gameClock
   );
 
+  // Continuous attack effect for chainsaw and gun in endless mode
+  useEffect(() => {
+    if (!gameStarted || gameMode !== 'endless-mode' || !isMouseDown) {
+      killedBugsRef.current.clear();
+      return;
+    }
+
+    // Only apply continuous attack for chainsaw and gun
+    if (selectedTool !== 'chainsaw' && selectedTool !== 'gun') {
+      killedBugsRef.current.clear();
+      return;
+    }
+
+    const continuousAttackInterval = setInterval(() => {
+      const now = Date.now();
+      const timeSinceLastAttack = now - lastContinuousAttackRef.current;
+      
+      // Attack rate: chainsaw = 200ms, gun = 150ms (faster than chainsaw)
+      const attackRate = selectedTool === 'chainsaw' ? 200 : 150;
+      
+      if (timeSinceLastAttack >= attackRate) {
+        // Check for bugs in weapon hitbox
+        const weaponHitbox = getWeaponHitbox(mousePosition.x, mousePosition.y, selectedTool);
+        
+        const hitBug = bugs.find(bug => {
+          // Skip bugs that were already killed in this attack session
+          if (killedBugsRef.current.has(bug.id)) return false;
+          
+          // Check collision
+          const hitboxCollision = checkCollision(weaponHitbox, bug.x, bug.y);
+          
+          if (!hitboxCollision) {
+            const distance = Math.sqrt(Math.pow(mousePosition.x - bug.x, 2) + Math.pow(mousePosition.y - bug.y, 2));
+            return distance <= 25; // Smaller radius for continuous attack
+          }
+          
+          return hitboxCollision;
+        });
+
+        if (hitBug) {
+          // Kill the bug
+          killBug(hitBug.id);
+          
+          // Mark this bug as killed in this attack session
+          killedBugsRef.current.add(hitBug.id);
+          
+          // Play squish sound
+          if (soundEnabled) {
+            playSquishSound();
+          }
+          
+          // Create pest damage effect
+          createPestDamageEffect(hitBug.x, hitBug.y, setPestDamageEffects);
+          
+          // Create particles
+          createBugParticles(hitBug.x, hitBug.y, selectedTool, getRandomPaintColor, setParticles);
+          
+          // Create weapon damage effects for chaos
+          createDamageEffect(hitBug.x, hitBug.y, selectedTool, lastFlamethrowerDamage, setDamageEffects);
+          
+          lastContinuousAttackRef.current = now;
+        }
+      }
+    }, 50); // Check every 50ms for smooth continuous attack
+
+    return () => clearInterval(continuousAttackInterval);
+  }, [
+    gameStarted, gameMode, isMouseDown, selectedTool, mousePosition, bugs,
+    getWeaponHitbox, checkCollision, killBug, soundEnabled, playSquishSound,
+    createPestDamageEffect, setPestDamageEffects, createBugParticles, setParticles,
+    createDamageEffect, setDamageEffects, getRandomPaintColor, lastFlamethrowerDamage
+  ]);
+
+  // Reset killed bugs tracking when mouse is released
+  useEffect(() => {
+    if (!isMouseDown) {
+      killedBugsRef.current.clear();
+    }
+  }, [isMouseDown]);
+
   // Handle tool changes from keyboard
   useEffect(() => {
     const handleToolChange = (event: CustomEvent) => {
@@ -101,6 +185,10 @@ export const useDesktopInteraction = ({
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
     setIsMouseDown(true);
+
+    // Reset continuous attack tracking
+    lastContinuousAttackRef.current = Date.now();
+    killedBugsRef.current.clear();
 
     // Handle desktop destroyer mode and endless mode
     if (gameMode === 'desktop-destroyer' || gameMode === 'endless-mode') {
@@ -146,6 +234,9 @@ export const useDesktopInteraction = ({
   const handleDesktopMouseUp = useCallback(() => {
     setIsMouseDown(false);
     
+    // Clear continuous attack tracking
+    killedBugsRef.current.clear();
+    
     // Stop continuous sounds for chainsaw and gun in both desktop destroyer and endless mode
     if (selectedTool === 'chainsaw') {
       setChainsawPath([]);
@@ -168,8 +259,9 @@ export const useDesktopInteraction = ({
       // Check collision with bugs using weapon hitbox and fallback distance check
       const weaponHitbox = getWeaponHitbox(x, y, selectedTool);
       
-      // For endless mode, also check if mouse is down to kill pests while holding
-      const shouldCheckForKill = gameMode === 'pest-control' || (gameMode === 'endless-mode' && (event.type === 'click' || isMouseDown));
+      // For endless mode, skip click-based killing for chainsaw and gun since they use continuous attack
+      const shouldCheckForKill = gameMode === 'pest-control' || 
+        (gameMode === 'endless-mode' && selectedTool !== 'chainsaw' && selectedTool !== 'gun');
       
       if (shouldCheckForKill) {
         const hitBug = bugs.find(bug => {
@@ -243,7 +335,7 @@ export const useDesktopInteraction = ({
               }
             }
           } else if (gameMode === 'endless-mode') {
-            // For endless mode, DON'T play additional sounds on miss
+            // For endless mode, DON'T play additional sounds on miss for chainsaw/gun
             // The continuous sound is already handled by mouse down/up
             
             // Fire laser beam even on miss
@@ -252,14 +344,16 @@ export const useDesktopInteraction = ({
               laserEffect.fireLaser(x, y, randomAngle, 150, gameMode);
             }
             
-            // Create damage effects even on miss for maximum chaos
-            createDamageEffect(x, y, selectedTool, lastFlamethrowerDamage, setDamageEffects);
-            createParticles(x, y, selectedTool, getRandomPaintColor, setParticles);
+            // Create damage effects even on miss for maximum chaos (but not for chainsaw/gun during continuous attack)
+            if (selectedTool !== 'chainsaw' && selectedTool !== 'gun') {
+              createDamageEffect(x, y, selectedTool, lastFlamethrowerDamage, setDamageEffects);
+              createParticles(x, y, selectedTool, getRandomPaintColor, setParticles);
+            }
           }
         }
       }
     }
-  }, [gameMode, gameStarted, bugs, selectedTool, killBug, attemptKill, soundEnabled, isWeaponMuted, playSound, playSquishSound, createPestDamageEffect, setPestDamageEffects, createBugParticles, setParticles, getWeaponHitbox, checkCollision, volume, laserEffect, createDamageEffect, setDamageEffects, createParticles, getRandomPaintColor, lastFlamethrowerDamage, isMouseDown]);
+  }, [gameMode, gameStarted, bugs, selectedTool, killBug, attemptKill, soundEnabled, isWeaponMuted, playSound, playSquishSound, createPestDamageEffect, setPestDamageEffects, createBugParticles, setParticles, getWeaponHitbox, checkCollision, volume, laserEffect, createDamageEffect, setDamageEffects, createParticles, getRandomPaintColor, lastFlamethrowerDamage]);
 
   // Global mouse up handler to stop sounds when mouse is released outside desktop
   useEffect(() => {

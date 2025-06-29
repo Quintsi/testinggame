@@ -133,13 +133,22 @@ export const useMouseHandlers = (
       centerY = y + weaponOffsetY + (weaponSize / 2);
     }
     
+    // Reduced hitboxes for chainsaw and gun in endless mode for balance
+    const isEndlessMode = gameMode === 'endless-mode';
+    
     switch (tool) {
       case 'hammer': return { x: centerX - 50, y: centerY - 50, width: 100, height: 100 };
-      case 'gun': return { x: centerX - 40, y: centerY - 40, width: 80, height: 80 };
+      case 'gun': 
+        // Significantly reduced hitbox for gun in endless mode
+        const gunSize = isEndlessMode ? 40 : 80; // 50% smaller in endless mode
+        return { x: centerX - gunSize/2, y: centerY - gunSize/2, width: gunSize, height: gunSize };
       case 'flamethrower': return { x: centerX - 70, y: centerY - 70, width: 140, height: 140 };
       case 'laser': return { x: centerX - 60, y: centerY - 16, width: 120, height: 32 };
       case 'paintball': return { x: centerX - 90, y: centerY - 90, width: 180, height: 180 };
-      case 'chainsaw': return { x: centerX - 60, y: centerY - 60, width: 120, height: 120 };
+      case 'chainsaw': 
+        // Significantly reduced hitbox for chainsaw in endless mode
+        const chainsawSize = isEndlessMode ? 60 : 120; // 50% smaller in endless mode
+        return { x: centerX - chainsawSize/2, y: centerY - chainsawSize/2, width: chainsawSize, height: chainsawSize };
       default: return { x: centerX - 40, y: centerY - 40, width: 80, height: 80 };
     }
   }, [gameMode]);
