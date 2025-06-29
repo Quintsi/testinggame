@@ -1,6 +1,6 @@
 export type Tool = 'hammer' | 'gun' | 'flamethrower' | 'laser' | 'paintball' | 'chainsaw';
 
-export type GameMode = 'desktop-destroyer' | 'pest-control';
+export type GameMode = 'desktop-destroyer' | 'pest-control' | 'endless-mode';
 
 export type PestType = 'termite' | 'spider' | 'fly' | 'cockroach' | 'snail' | 'caterpillar';
 
@@ -57,4 +57,11 @@ export interface Bug {
   timestamp: number;
   type: PestType; // Add pest type
   requiredWeapon: Tool; // Add required weapon to kill this pest
+  // Movement properties for endless mode
+  velocityX?: number;
+  velocityY?: number;
+  targetX?: number;
+  targetY?: number;
+  speed?: number;
+  lastMoveTime?: number;
 }

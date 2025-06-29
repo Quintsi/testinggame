@@ -40,6 +40,7 @@ function App() {
     timeLeft,
     missedAttempts,
     userHighScore,
+    wave,
     PEST_WEAPON_MAP,
     mutedWeapons,
     pestDamageEffects,
@@ -79,11 +80,11 @@ function App() {
 
   const toggleSound = () => setSoundEnabled(prev => !prev);
 
-  // Determine if we should hide UI elements (during active pest control gameplay)
-  const shouldHideUI = gameMode === 'pest-control' && gameStarted && !gameEnded;
+  // Determine if we should hide UI elements (during active pest control or endless mode gameplay)
+  const shouldHideUI = (gameMode === 'pest-control' || gameMode === 'endless-mode') && gameStarted && !gameEnded;
 
-  // Check if pest control mode requires authentication
-  const isPestControlModeRestricted = gameMode === 'pest-control' && !isAuthenticated;
+  // Check if pest control or endless mode requires authentication
+  const isPestModeRestricted = (gameMode === 'pest-control' || gameMode === 'endless-mode') && !isAuthenticated;
 
   useEffect(() => {
     // Clean up old damage effects periodically
@@ -126,7 +127,7 @@ function App() {
         {/* Fixed background image */}
         <div className="bg-fixed-cover" />
         
-        {/* Login Button - Hide during active pest control */}
+        {/* Login Button - Hide during active pest control or endless mode */}
         {!shouldHideUI && (
           <LoginButton onShowLeaderboard={() => setShowLeaderboard(true)} />
         )}
@@ -137,12 +138,12 @@ function App() {
           onClose={() => setShowLeaderboard(false)} 
         />
         
-        {/* Game Mode Selector - Hide during active pest control */}
+        {/* Game Mode Selector - Hide during active pest control or endless mode */}
         {!shouldHideUI && (
           <GameModeSelector currentMode={gameMode} onModeChange={handleModeChange} />
         )}
         
-        {/* Tool Sidebar - Hide during active pest control */}
+        {/* Tool Sidebar - Hide during active pest control or endless mode */}
         {!shouldHideUI && (
           <ToolSidebar
             tools={tools}
@@ -160,16 +161,18 @@ function App() {
         
         {/* Desktop Environment */}
         <div className="flex-1 relative">
-          {/* Show auth guard only for pest control mode when not authenticated */}
-          {isPestControlModeRestricted ? (
+          {/* Show auth guard only for pest modes when not authenticated */}
+          {isPestModeRestricted ? (
             <AuthGuard
               fallback={
                 <div className="flex items-center justify-center h-full bg-gray-900">
                   <div className="text-center max-w-md mx-auto p-8">
                     <div className="text-6xl mb-6">🐛</div>
-                    <h2 className="text-2xl font-bold text-white mb-4">Pest Control Mode</h2>
+                    <h2 className="text-2xl font-bold text-white mb-4">
+                      {gameMode === 'endless-mode' ? 'Endless Mode' : 'Pest Protocol Mode'}
+                    </h2>
                     <p className="text-gray-400 mb-8">
-                      Sign in with your Google account to play Pest Control mode and compete on the global leaderboard!
+                      Sign in with your Google account to play {gameMode === 'endless-mode' ? 'Endless Mode' : 'Pest Protocol mode'} and compete on the global leaderboard!
                     </p>
                     <div className="text-sm text-gray-500">
                       Desktop Destroyer mode is available without signing in.
@@ -234,8 +237,8 @@ function App() {
             />
           )}
           
-          {/* Pest Control Overlay - Only show when authenticated or in desktop destroyer mode */}
-          {gameMode === 'pest-control' && !isPestControlModeRestricted && (
+          {/* Pest Control/Endless Mode Overlay - Only show when authenticated or in desktop destroyer mode */}
+          {(gameMode === 'pest-control' || gameMode === 'endless-mode') && !isPestModeRestricted && (
             <PestControlOverlay
               bugs={bugs}
               gameStarted={gameStarted}
@@ -250,6 +253,8 @@ function App() {
               mousePosition={mousePosition}
               PEST_WEAPON_MAP={PEST_WEAPON_MAP}
               onExitGame={resetGame}
+              gameMode={gameMode}
+              wave={wave}
             />
           )}
           

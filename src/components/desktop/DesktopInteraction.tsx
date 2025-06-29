@@ -132,9 +132,9 @@ export const useDesktopInteraction = ({
       }
     }
     
-    // Handle pest control mode - just set mouse down for weapon animation
-    if (gameMode === 'pest-control') {
-      // Brief weapon animation effect for pest control clicks
+    // Handle pest modes - just set mouse down for weapon animation
+    if (gameMode === 'pest-control' || gameMode === 'endless-mode') {
+      // Brief weapon animation effect for pest mode clicks
       setTimeout(() => {
         setIsMouseDown(false);
       }, 150); // Show frame 2 for 150ms then return to frame 1
@@ -153,8 +153,8 @@ export const useDesktopInteraction = ({
   }, [selectedTool, soundEnabled, isWeaponMuted, stopSound, setIsMouseDown, setChainsawPath]);
 
   const handleDesktopClick = useCallback((event: React.MouseEvent) => {
-    // Handle pest control mode
-    if (gameMode === 'pest-control' && gameStarted) {
+    // Handle pest modes
+    if ((gameMode === 'pest-control' || gameMode === 'endless-mode') && gameStarted) {
       const rect = desktopRef.current?.getBoundingClientRect();
       if (!rect) return;
 
@@ -200,7 +200,7 @@ export const useDesktopInteraction = ({
           // Create particles for successful hit at bug position
           createBugParticles(hitBug.x, hitBug.y, selectedTool, getRandomPaintColor, setParticles);
           
-          // Fire laser beam for pest control mode (follows mouse direction)
+          // Fire laser beam for pest modes (follows mouse direction)
           if (selectedTool === 'laser') {
             const angle = Math.atan2(hitBug.y - y, hitBug.x - x);
             laserEffect.fireLaser(x, y, angle, 150, gameMode);

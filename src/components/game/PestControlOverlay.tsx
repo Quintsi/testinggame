@@ -1,6 +1,6 @@
 import React from 'react';
 import { X } from 'lucide-react';
-import { Bug as BugType, Tool, PestType } from '../../types/game';
+import { Bug as BugType, Tool, PestType, GameMode } from '../../types/game';
 import { useAuth } from '../../hooks/useAuth';
 
 interface PestControlOverlayProps {
@@ -17,6 +17,8 @@ interface PestControlOverlayProps {
   mousePosition: { x: number; y: number };
   PEST_WEAPON_MAP: Record<PestType, Tool>;
   onExitGame: () => void;
+  gameMode: GameMode;
+  wave?: number; // For endless mode
 }
 
 const PestControlOverlay: React.FC<PestControlOverlayProps> = ({ 
@@ -29,7 +31,9 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
   userHighScore,
   onStartGame, 
   PEST_WEAPON_MAP,
-  onExitGame
+  onExitGame,
+  gameMode,
+  wave = 1
 }) => {
   const { isAuthenticated, user } = useAuth();
 
@@ -101,6 +105,39 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
     });
   };
 
+  const getGameModeTitle = () => {
+    switch (gameMode) {
+      case 'pest-control':
+        return 'Strategic Pest Protocol';
+      case 'endless-mode':
+        return 'Endless Pest Protocol';
+      default:
+        return 'Strategic Pest Protocol';
+    }
+  };
+
+  const getGameModeDescription = () => {
+    switch (gameMode) {
+      case 'pest-control':
+        return 'Each pest requires a specific weapon to kill!';
+      case 'endless-mode':
+        return 'Survive endless waves of moving pests converging on the center!';
+      default:
+        return 'Each pest requires a specific weapon to kill!';
+    }
+  };
+
+  const getStartButtonText = () => {
+    switch (gameMode) {
+      case 'pest-control':
+        return 'START STRATEGIC HUNT';
+      case 'endless-mode':
+        return 'START ENDLESS SURVIVAL';
+      default:
+        return 'START STRATEGIC HUNT';
+    }
+  };
+
   return (
     <>
       {/* Timer, Score Display and Exit Button - Top Left Corner */}
@@ -109,14 +146,14 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
           <div className="bg-gray-800/95 backdrop-blur-sm rounded-lg p-3 shadow-2xl border border-gray-700 min-w-[160px]">
             <div className="flex items-center justify-between mb-2">
               <div className="text-xl font-bold text-white">
-                {timeLeft}s
+                {gameMode === 'endless-mode' ? `Wave ${wave}` : `${timeLeft}s`}
               </div>
               <button
                 onClick={onExitGame}
-                className="p-1 rounded bg-red-600/20 hover:bg-red-600/40 transition-colors duration-200 group"
+                className="px-2 py-1 rounded bg-red-600/20 hover:bg-red-600/40 transition-colors duration-200 group text-xs"
                 title="Exit Game"
               >
-                <X className="w-4 h-4 text-red-400 group-hover:text-red-300" />
+                <span className="text-red-400 group-hover:text-red-300 font-medium">Exit Game</span>
               </button>
             </div>
             <div className="text-sm font-semibold text-green-400">
@@ -140,8 +177,8 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
       {!gameStarted && !gameEnded && (
         <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-40">
           <div className="text-center max-w-2xl mx-auto px-4">
-            <h2 className="text-4xl font-bold text-white mb-4">Strategic Pest Protocol</h2>
-            <p className="text-xl text-gray-300 mb-4">Each pest requires a specific weapon to kill!</p>
+            <h2 className="text-4xl font-bold text-white mb-4">{getGameModeTitle()}</h2>
+            <p className="text-xl text-gray-300 mb-4">{getGameModeDescription()}</p>
             
             {/* Authentication Status */}
             {isAuthenticated && user ? (
@@ -189,7 +226,7 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
               onClick={onStartGame}
               className="bg-green-600 hover:bg-green-700 text-white font-bold text-2xl px-12 py-6 rounded-xl shadow-2xl transition-all duration-200 transform hover:scale-105"
             >
-              START STRATEGIC HUNT
+              {getStartButtonText()}
             </button>
           </div>
         </div>
@@ -199,7 +236,9 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
       {gameEnded && (
         <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-40">
           <div className="bg-gray-800/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-gray-600 text-center max-w-md">
-            <h2 className="text-4xl font-bold text-white mb-4">Time's Up!</h2>
+            <h2 className="text-4xl font-bold text-white mb-4">
+              {gameMode === 'endless-mode' ? 'Overrun!' : "Time's Up!"}
+            </h2>
             
             <div className="mb-6">
               <div className="text-6xl font-bold text-green-400 mb-2">
@@ -208,6 +247,11 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
               <div className="text-xl text-gray-300">
                 {score === 1 ? 'Pest Eliminated' : 'Pests Eliminated'}
               </div>
+              {gameMode === 'endless-mode' && (
+                <div className="text-lg text-blue-400 mt-2">
+                  Reached Wave {wave}
+                </div>
+              )}
               {missedAttempts > 0 && (
                 <div className="text-lg text-red-400 mt-2">
                   {missedAttempts} Wrong Weapon{missedAttempts !== 1 ? 's' : ''}
@@ -264,7 +308,7 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
               onClick={onStartGame}
               className="bg-green-600 hover:bg-green-700 text-white font-bold text-xl px-8 py-4 rounded-xl shadow-xl transition-all duration-200 transform hover:scale-105"
             >
-              Hunt Again
+              {gameMode === 'endless-mode' ? 'Survive Again' : 'Hunt Again'}
             </button>
           </div>
         </div>
@@ -274,12 +318,13 @@ const PestControlOverlay: React.FC<PestControlOverlayProps> = ({
       {gameStarted && !gameEnded && bugs.map((bug) => (
         <div
           key={bug.id}
-          className="absolute z-30 animate-pulse pointer-events-none"
+          className="absolute z-30 animate-pulse pointer-events-none transition-all duration-100"
           style={{
             left: bug.x - 20,
             top: bug.y - 20,
             width: '40px',
             height: '40px',
+            transform: gameMode === 'endless-mode' ? 'scale(1.1)' : 'scale(1)', // Slightly larger in endless mode
           }}
         >
           <img 

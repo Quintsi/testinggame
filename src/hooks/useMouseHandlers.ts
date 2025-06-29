@@ -114,11 +114,11 @@ export const useMouseHandlers = (
   }, [isMouseDown, selectedTool, gameMode, setMousePosition, setChainsawPath, setChainsawPaths, desktopRef]);
 
   const getWeaponHitbox = useCallback((x: number, y: number, tool: Tool) => {
-    // In pest control mode, center the hitbox on the cursor position
+    // In pest modes, center the hitbox on the cursor position
     // In desktop destroyer mode, use the weapon image position
     let centerX, centerY;
     
-    if (gameMode === 'pest-control') {
+    if (gameMode === 'pest-control' || gameMode === 'endless-mode') {
       // Center hitbox directly on cursor position
       centerX = x;
       centerY = y;

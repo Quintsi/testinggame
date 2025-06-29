@@ -1,5 +1,5 @@
 import React from 'react';
-import { Monitor, Bug } from 'lucide-react';
+import { Monitor, Bug, Infinity } from 'lucide-react';
 import { GameMode } from '../../types/game';
 
 interface GameModeSelectorProps {
@@ -20,6 +20,12 @@ const GameModeSelector: React.FC<GameModeSelectorProps> = ({ currentMode, onMode
       name: 'Pest Protocol',
       icon: Bug,
       description: 'Hunt down bugs on the screen (Login required)'
+    },
+    {
+      id: 'endless-mode' as GameMode,
+      name: 'Endless Mode',
+      icon: Infinity,
+      description: 'Survive endless waves of moving pests (Login required)'
     }
   ];
 
