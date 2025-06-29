@@ -86,6 +86,13 @@ function App() {
   // Check if pest control mode requires authentication (endless mode does NOT require auth)
   const isPestControlModeRestricted = gameMode === 'pest-control' && !isAuthenticated;
 
+  // Format time for endless mode (MM:SS)
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   useEffect(() => {
     // Clean up old damage effects periodically
     const cleanup = setInterval(() => {
@@ -127,8 +134,8 @@ function App() {
         {/* Fixed background image */}
         <div className="bg-fixed-cover" />
         
-        {/* Login Button - Hide during active pest control only */}
-        {!shouldHideUI && (
+        {/* Login Button - Hide during active pest control AND endless mode */}
+        {!shouldHideUI && gameMode !== 'endless-mode' && (
           <LoginButton onShowLeaderboard={() => setShowLeaderboard(true)} />
         )}
         
@@ -138,8 +145,8 @@ function App() {
           onClose={() => setShowLeaderboard(false)} 
         />
         
-        {/* Game Mode Selector - Hide during active pest control only */}
-        {!shouldHideUI && (
+        {/* Game Mode Selector - Hide during active pest control AND endless mode */}
+        {!shouldHideUI && gameMode !== 'endless-mode' && (
           <GameModeSelector currentMode={gameMode} onModeChange={handleModeChange} />
         )}
         
@@ -159,20 +166,27 @@ function App() {
           />
         )}
         
-        {/* Timer UI for Endless Mode - Only show during active endless mode */}
+        {/* Timer UI for Endless Mode - Top left corner with Exit button */}
         {gameMode === 'endless-mode' && gameStarted && !gameEnded && (
-          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50">
-            <div className="bg-gray-800/95 backdrop-blur-sm rounded-lg p-3 shadow-2xl border border-gray-700">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-white">
-                  {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+          <div className="absolute top-4 left-4 z-50">
+            <div className="bg-gray-800/95 backdrop-blur-sm rounded-lg p-3 shadow-2xl border border-gray-700 min-w-[180px]">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-xl font-bold text-white">
+                  {formatTime(timeLeft)}
                 </div>
-                <div className="text-sm font-semibold text-green-400">
-                  Score: {score}
-                </div>
-                <div className="text-xs text-purple-400">
-                  Bugs: {bugs.length}
-                </div>
+                <button
+                  onClick={resetGame}
+                  className="px-2 py-1 rounded bg-red-600/20 hover:bg-red-600/40 transition-colors duration-200 group text-xs"
+                  title="Exit Game"
+                >
+                  <span className="text-red-400 group-hover:text-red-300 font-medium">Exit</span>
+                </button>
+              </div>
+              <div className="text-sm font-semibold text-green-400">
+                Score: {score}
+              </div>
+              <div className="text-xs text-purple-400">
+                Bugs: {bugs.length}
               </div>
             </div>
           </div>

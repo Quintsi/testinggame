@@ -380,6 +380,7 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
       if (gameMode === 'endless-mode') {
         // Count up for endless mode
         setElapsedTime(elapsedSeconds);
+        setTimeLeft(elapsedSeconds); // Use timeLeft to store elapsed time for endless mode
       } else {
         // Count down for pest control mode
         const remainingTime = Math.max(0, gameDuration - elapsedSeconds);
@@ -402,8 +403,7 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
     const spawnInterval = setInterval(() => {
       // Calculate spawn rate based on elapsed time
       // Start spawning additional bugs after 10 seconds, then every 8 seconds, then faster
-      const spawnRate = Math.max(2000, 8000 - (elapsedTime * 100)); // Faster spawning over time
-      const maxBugs = Math.min(3 + Math.floor(elapsedTime / 15), 12); // Max 12 bugs on screen
+      const maxBugs = Math.min(3 + Math.floor(elapsedTime / 15), 15); // Max 15 bugs on screen, increases every 15 seconds
       
       setBugs(prevBugs => {
         if (prevBugs.length < maxBugs && elapsedTime > 5) { // Start spawning additional bugs after 5 seconds
@@ -412,7 +412,7 @@ export const usePestControl = (gameMode: GameMode = 'pest-control') => {
         }
         return prevBugs;
       });
-    }, 3000); // Check every 3 seconds
+    }, Math.max(1000, 4000 - (elapsedTime * 50))); // Spawn faster over time, minimum 1 second interval
 
     return () => clearInterval(spawnInterval);
   }, [gameStarted, gameEnded, gameMode, elapsedTime, createBug]);
