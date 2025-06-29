@@ -199,7 +199,7 @@ function App() {
           {isPestControlModeRestricted ? (
             <AuthGuard
               fallback={
-                <div className="flex items-center justify-center h-full bg-gray-900 md-p-16">
+                <div className="flex items-center justify-center h-full bg-gray-900 md:py-16">
                   <div className="text-center max-w-md mx-auto p-8">
                     <div className="text-6xl mb-6">🐛</div>
                     <h2 className="text-2xl font-bold text-white mb-4">Pest Protocol Mode</h2>
