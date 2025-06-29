@@ -15,7 +15,7 @@ const LoginButton: React.FC<LoginButtonProps> = ({ onShowLeaderboard }) => {
 
   if (loading) {
     return (
-      <div className="absolute top-4 right-4 z-50">
+      <div className="absolute right-4 z-50">
         <div className="bg-gray-800/90 backdrop-blur-sm rounded-xl p-3 shadow-2xl border border-gray-700">
           <div className="animate-spin w-6 h-6 border-2 border-blue-400 border-t-transparent rounded-full"></div>
         </div>
