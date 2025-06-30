@@ -144,6 +144,11 @@ function App() {
           <LoginButton onShowLeaderboard={() => setShowLeaderboard(true)} />
         )}
         
+        {/* Bolt.new Badge - Positioned under sign-in button */}
+        {!shouldHideUI && (
+          <BoltBadge />
+        )}
+        
         {/* Leaderboard Modal */}
         <LeaderboardModal 
           isOpen={showLeaderboard} 
@@ -300,9 +305,6 @@ function App() {
           {/* Particle System */}
           <ParticleSystem particles={particles} />
         </div>
-        
-        {/* Bolt.new Badge - Bottom right, above clock */}
-        <BoltBadge />
         
         {/* Instructions - Always show */}
         <InstructionText

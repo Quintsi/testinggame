@@ -2,7 +2,7 @@ import React from 'react';
 
 const BoltBadge: React.FC = () => {
   return (
-    <div className="absolute bottom-16 right-4 z-10">
+    <div className="absolute top-20 right-4 z-10">
       <a
         href="https://bolt.new"
         target="_blank"
@@ -13,7 +13,7 @@ const BoltBadge: React.FC = () => {
         <img
           src="/asset/black_circle_360x360.png"
           alt="Built with Bolt.new"
-          className="w-12 h-12 opacity-80 hover:opacity-100 transition-opacity duration-200"
+          className="w-24 h-24 opacity-80 hover:opacity-100 transition-opacity duration-200"
         />
       </a>
     </div>
