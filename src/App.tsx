@@ -8,6 +8,7 @@ import PestControlOverlay from './components/game/PestControlOverlay';
 import LoginButton from './components/auth/LoginButton';
 import LeaderboardModal from './components/auth/LeaderboardModal';
 import AuthGuard from './components/auth/AuthGuard';
+import BoltBadge from './components/ui/BoltBadge';
 import { InstructionText } from './components/ui/InstructionText';
 import { GameClockProvider } from './components/effects/GameClockProvider'
 import { useGameState } from './hooks/useGameState';
@@ -141,6 +142,11 @@ function App() {
         {/* Login Button - Hide during active pest control AND endless mode when started */}
         {!shouldHideUI && (
           <LoginButton onShowLeaderboard={() => setShowLeaderboard(true)} />
+        )}
+        
+        {/* Bolt.new Badge - Positioned under sign-in button */}
+        {!shouldHideUI && (
+          <BoltBadge />
         )}
         
         {/* Leaderboard Modal */}

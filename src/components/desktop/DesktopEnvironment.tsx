@@ -285,7 +285,7 @@ const DesktopEnvironment = forwardRef<HTMLDivElement, DesktopEnvironmentProps>(
             </div>
             <div className="p-4 h-full bg-white">
               <p className="text-sm text-gray-700">
-                This is a sample text document that you can destroy with various tools!
+                You can use various tools on the sidebar to destroy the desktop!
               </p>
             </div>
           </div>
