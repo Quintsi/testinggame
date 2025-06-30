@@ -1,5 +1,4 @@
 import React from 'react';
-import { Zap } from 'lucide-react';
 
 const BoltBadge: React.FC = () => {
   return (
@@ -8,11 +7,14 @@ const BoltBadge: React.FC = () => {
         href="https://bolt.new"
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center space-x-2 bg-black/70 hover:bg-black/80 text-white px-3 py-2 rounded-lg text-sm transition-all duration-200 hover:scale-105 group"
+        className="block transition-all duration-200 hover:scale-105"
         title="Built with Bolt.new"
       >
-        <Zap className="w-4 h-4 text-yellow-400 group-hover:text-yellow-300" />
-        <span className="font-medium">Built with Bolt.new</span>
+        <img
+          src="/asset/black_circle_360x360.png"
+          alt="Built with Bolt.new"
+          className="w-12 h-12 opacity-80 hover:opacity-100 transition-opacity duration-200"
+        />
       </a>
     </div>
   );
