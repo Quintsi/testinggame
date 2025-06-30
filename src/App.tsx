@@ -8,6 +8,7 @@ import PestControlOverlay from './components/game/PestControlOverlay';
 import LoginButton from './components/auth/LoginButton';
 import LeaderboardModal from './components/auth/LeaderboardModal';
 import AuthGuard from './components/auth/AuthGuard';
+import BoltBadge from './components/ui/BoltBadge';
 import { InstructionText } from './components/ui/InstructionText';
 import { GameClockProvider } from './components/effects/GameClockProvider'
 import { useGameState } from './hooks/useGameState';
@@ -299,6 +300,9 @@ function App() {
           {/* Particle System */}
           <ParticleSystem particles={particles} />
         </div>
+        
+        {/* Bolt.new Badge - Bottom right, above clock */}
+        <BoltBadge />
         
         {/* Instructions - Always show */}
         <InstructionText
